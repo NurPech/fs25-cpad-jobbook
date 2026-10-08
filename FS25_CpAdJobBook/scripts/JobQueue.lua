@@ -237,6 +237,30 @@ function JobQueue.getBusyReason(vehicle)
     return nil
 end
 
+---Sets the Courseplay setting "start at" of the vehicle (HUD and key binds) to "first waypoint". The
+-- hand-over of AutoDrive doesn't use it (it starts at the remembered waypoint, which is cleared), but
+-- it applies when the course is started by hand, e.g. after stopping the queue.
+function JobQueue.setStartAtFirstWaypoint(vehicle)
+    if vehicle.getCpStartingPointSetting == nil then
+        return
+    end
+
+    local setting = vehicle:getCpStartingPointSetting()
+    if setting == nil then
+        return
+    end
+
+    -- 2 is the value of START_AT_FIRST_POINT in the Courseplay job parameter setup
+    local parameters = FS25_Courseplay ~= nil and FS25_Courseplay.CpFieldWorkJobParameters or nil
+    local first = parameters ~= nil and parameters.START_AT_FIRST_POINT or 2
+
+    local before = setting:getValue()
+    if before ~= first then
+        setting:setValue(first)
+        JobQueue.log("%s: Courseplay 'start at' was %s, set to the first waypoint (%s)", JobQueue.getVehicleName(vehicle), tostring(before), tostring(setting:getValue()))
+    end
+end
+
 ---Loads the course, points AutoDrive at the field and starts it. Returns true on success.
 function JobQueue:startJob(vehicle, job)
     local AD = JobQueue.getAutoDrive()
@@ -268,6 +292,7 @@ function JobQueue:startJob(vehicle, job)
 
     -- the previous course is finished, so start the new one at its beginning
     vehicle:rememberCpLastWaypointIx()
+    JobQueue.setStartAtFirstWaypoint(vehicle)
 
     -- The AutoDrive mode stays as the player set it. The field is the "target", which is the first
     -- marker (top row in the AutoDrive HUD) in the modes that can work with Courseplay:

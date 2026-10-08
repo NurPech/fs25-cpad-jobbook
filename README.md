@@ -8,7 +8,7 @@ A job is a Courseplay course plus an AutoDrive destination (the field). When Cou
 
 Starting a job:
 
-1. The Courseplay course is loaded into the vehicle and the remembered waypoint is cleared, so the course starts at its beginning.
+1. The Courseplay course is loaded into the vehicle and the remembered waypoint is cleared, so the course starts at its beginning. The Courseplay setting "start at" of the vehicle is set to "first waypoint", so a course started by hand afterwards also begins at the start.
 2. The field is put into the first AutoDrive marker (the "target", top row of the AutoDrive HUD). The AutoDrive mode is not changed. Supported modes are *pickup* (load), *drive to* and *deliver to*. In pickup mode the pickup place (second marker) and the fill type stay as set, so AutoDrive can refill during the Courseplay work and returns to the current field.
 3. AutoDrive is started with the Courseplay helper switched on. When AutoDrive reaches the field it hands over to Courseplay on its own.
 
@@ -46,3 +46,5 @@ The console commands do the same without the window. With the vehicle set up as 
 Version 0.2.0.0 works in the full workflow (hand-over to AutoDrive, next field, refilling during the work). The queues are saved with the savegame in `cpAdJobBook.xml` and are there again after loading. A queue that was running stays running: continue the Courseplay course by hand, and when it finishes the queue goes on with the next job (`jqStop` cancels). The AutoDrive destination is found again by its name if the marker ids change.
 
 Version 0.3.0.0 adds the job book window. Adding, removing, moving, starting and stopping from the window are tested in the game. The course list is flat (filter by path), there is no folder tree yet.
+
+Version 0.3.1.0 sets the Courseplay "start at" setting to "first waypoint" whenever a job is started.
