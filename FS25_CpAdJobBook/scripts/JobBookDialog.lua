@@ -9,6 +9,7 @@ JobBookDialog = {}
 local JobBookDialog_mt = Class(JobBookDialog, MessageDialog)
 
 JobBookDialog.NAME = "JobBookDialog"
+JobBookDialog.REFRESH_INTERVAL = 500
 JobBookDialog.CONTROLS = {
     "titleText",
     "statusText",
@@ -25,6 +26,8 @@ function JobBookDialog.new(target, customMt)
 
     self.vehicle = nil
     self.rows = {}
+    self.signature = nil
+    self.refreshTimer = 0
 
     return self
 end
@@ -44,11 +47,47 @@ end
 function JobBookDialog:onOpen()
     JobBookDialog:superClass().onOpen(self)
 
+    self.refreshTimer = 0
+
     self:refresh()
 end
 
 function JobBookDialog:onClickBack()
     self:close()
+end
+
+---Describes what the window shows: the state of the queue and which job objects are in it.
+function JobBookDialog:getQueueSignature()
+    local queue = self:getQueue()
+    if queue == nil then
+        return "none"
+    end
+
+    local parts = { tostring(queue.running), tostring(queue.current) }
+    for _, job in ipairs(queue.jobs) do
+        table.insert(parts, tostring(job))
+    end
+
+    return table.concat(parts, ",")
+end
+
+---The queue advances while the window is open (a course finishes and the next job starts), so look
+-- for changes now and then and redraw. The selection stays on the same job.
+function JobBookDialog:update(dt)
+    JobBookDialog:superClass().update(self, dt)
+
+    self.refreshTimer = self.refreshTimer + dt
+    if self.refreshTimer < JobBookDialog.REFRESH_INTERVAL then
+        return
+    end
+    self.refreshTimer = 0
+
+    if self.vehicle == nil or self:getQueueSignature() == self.signature then
+        return
+    end
+
+    local row = self:getSelectedRow()
+    self:refresh(nil, row ~= nil and row.job or nil)
 end
 
 ---The row selected in the list, or nil.
@@ -157,9 +196,11 @@ function JobBookDialog:updateButtons()
 end
 
 ---Rebuilds the rows from the queue of the vehicle and redraws the list. selectIndex is the row to
--- select afterwards (clamped to the list).
-function JobBookDialog:refresh(selectIndex)
+-- select afterwards (clamped to the list). selectJob, if given and still in the list, is selected
+-- instead.
+function JobBookDialog:refresh(selectIndex, selectJob)
     self.rows = {}
+    self.signature = self:getQueueSignature()
 
     local vehicle = self.vehicle
     local queue = vehicle ~= nil and JobQueue:getQueue(vehicle, false) or nil
@@ -180,6 +221,15 @@ function JobBookDialog:refresh(selectIndex)
 
     self.emptyText:setVisible(#self.rows == 0)
     self.jobList:reloadData()
+
+    if selectJob ~= nil then
+        for i, row in ipairs(self.rows) do
+            if row.job == selectJob then
+                selectIndex = i
+                break
+            end
+        end
+    end
 
     if #self.rows > 0 then
         if selectIndex == nil then
