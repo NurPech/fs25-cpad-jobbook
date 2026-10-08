@@ -48,3 +48,5 @@ Version 0.2.0.0 works in the full workflow (hand-over to AutoDrive, next field, 
 Version 0.3.0.0 adds the job book window. Adding, removing, moving, starting and stopping from the window are tested in the game. The course list is flat (filter by path), there is no folder tree yet.
 
 Version 0.3.1.0 sets the Courseplay "start at" setting to "first waypoint" whenever a job is started.
+
+Version 0.3.2.0 refreshes the job book window while it is open, so it follows the queue when a job starts or finishes.
