@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<GUI onOpen="onOpen" onClose="onClose">
+    <GuiElement profile="newLayer"/>
+    <Bitmap profile="dialogFullscreenBg" id="dialogBg"/>
+
+    <GuiElement profile="fs25_dialogBg" id="dialogElement" size="1000px 700px">
+        <ThreePartBitmap profile="fs25_dialogBgMiddle"/>
+        <ThreePartBitmap profile="fs25_dialogBgTop"/>
+        <ThreePartBitmap profile="fs25_dialogBgBottom"/>
+
+        <GuiElement profile="fs25_dialogContentContainer">
+            <BoxLayout profile="ajMainBox">
+
+                <Text profile="ajTitle" text="$l10n_addJob_title"/>
+
+                <GuiElement profile="ajSepWrapper">
+                    <ThreePartBitmap profile="ajSep"/>
+                </GuiElement>
+
+                <GuiElement profile="ajSpacer"/>
+
+                <Text profile="ajStatus" id="statusText"/>
+
+                <GuiElement profile="ajContent">
+
+                    <!-- left column: courses -->
+                    <Text profile="ajColHeader" position="0px 0px" size="450px 25px" text="$l10n_addJob_courses"/>
+
+                    <TextInput profile="ajInput" id="courseInput" position="0px -28px" onTextChanged="onCourseFilterChanged" enterWhenClickOutside="false" applyProfanityFilter="false">
+                        <ThreePartBitmap profile="ajInputOutline" absoluteSizeOffset="0px 0px"/>
+                    </TextInput>
+
+                    <SmoothList profile="ajList" id="courseList" position="0px -72px" focusInit="onOpen" selectedWithoutFocus="true" listItemSpacing="0px" listItemLateralSpacing="0px" listSmoothingDisabled="true">
+                        <ListItem profile="ajListItem" name="templateItem">
+                            <ThreePartBitmap profile="ajItemGradient" name="alternating"/>
+                            <Text profile="ajCell" position="10px 0px" size="430px 32px" name="cellName"/>
+                        </ListItem>
+                    </SmoothList>
+                    <ThreePartBitmap profile="ajSliderBox" position="444px -72px">
+                        <Slider profile="fs25_listSlider" dataElementId="courseList"/>
+                    </ThreePartBitmap>
+
+                    <!-- right column: AutoDrive destinations -->
+                    <Text profile="ajColHeader" position="470px 0px" size="450px 25px" text="$l10n_addJob_destinations"/>
+
+                    <TextInput profile="ajInput" id="destinationInput" position="470px -28px" onTextChanged="onDestinationFilterChanged" enterWhenClickOutside="false" applyProfanityFilter="false">
+                        <ThreePartBitmap profile="ajInputOutline" absoluteSizeOffset="0px 0px"/>
+                    </TextInput>
+
+                    <SmoothList profile="ajList" id="destinationList" position="470px -72px" selectedWithoutFocus="true" listItemSpacing="0px" listItemLateralSpacing="0px" listSmoothingDisabled="true">
+                        <ListItem profile="ajListItem" name="templateItem">
+                            <ThreePartBitmap profile="ajItemGradient" name="alternating"/>
+                            <Text profile="ajCell" position="10px 0px" size="430px 32px" name="cellName"/>
+                        </ListItem>
+                    </SmoothList>
+                    <ThreePartBitmap profile="ajSliderBox" position="914px -72px">
+                        <Slider profile="fs25_listSlider" dataElementId="destinationList"/>
+                    </ThreePartBitmap>
+
+                </GuiElement>
+
+            </BoxLayout>
+        </GuiElement>
+
+        <BoxLayout profile="fs25_dialogButtonBox" size="940px 60px">
+            <Button profile="buttonOK" text="$l10n_addJob_add" onClick="onClickAdd"/>
+            <Bitmap profile="fs25_dialogButtonBoxSeparator"/>
+            <Button profile="buttonBack" text="$l10n_jobBook_close" onClick="onClickBack"/>
+        </BoxLayout>
+    </GuiElement>
+
+    <GUIProfiles>
+
+        <Profile name="ajMainBox" extends="emptyPanel" with="anchorTopCenter">
+            <size value="920px 580px"/>
+            <flowDirection value="vertical"/>
+            <alignmentX value="left"/>
+            <alignmentY value="top"/>
+            <elementSpacing value="0px"/>
+        </Profile>
+
+        <Profile name="ajTitle" extends="baseReference">
+            <size value="920px 40px"/>
+            <margin value="0px 4px 0px 0px"/>
+            <textSize value="20px"/>
+            <textBold value="true"/>
+            <textUpperCase value="true"/>
+            <textColor value="$preset_fs25_colorMainLight"/>
+            <textAlignment value="center"/>
+            <textVerticalAlignment value="middle"/>
+        </Profile>
+
+        <Profile name="ajSepWrapper" extends="emptyPanel">
+            <size value="920px 2dp"/>
+        </Profile>
+
+        <Profile name="ajSep" extends="fs25_lineSeparatorTopHighlighted" with="anchorTopCenter">
+            <size value="260px 2dp"/>
+        </Profile>
+
+        <Profile name="ajSpacer" extends="emptyPanel">
+            <size value="920px 15px"/>
+        </Profile>
+
+        <Profile name="ajStatus" extends="baseReference">
+            <size value="920px 30px"/>
+            <textSize value="15px"/>
+            <textColor value="$preset_colorWhite_50"/>
+            <textAlignment value="center"/>
+            <textVerticalAlignment value="middle"/>
+        </Profile>
+
+        <Profile name="ajContent" extends="emptyPanel">
+            <size value="920px 490px"/>
+        </Profile>
+
+        <Profile name="ajColHeader" extends="baseReference" with="anchorTopLeft">
+            <textSize value="13px"/>
+            <textBold value="true"/>
+            <textUpperCase value="true"/>
+            <textColor value="$preset_colorWhite_50"/>
+            <textAlignment value="center"/>
+            <textVerticalAlignment value="middle"/>
+        </Profile>
+
+        <!-- filter field, border via the ajInputOutline child (same textures as the BankCredit input) -->
+        <Profile name="ajInput" extends="fs25_textInput" with="anchorTopLeft">
+            <size value="450px 36px"/>
+            <applyProfanityFilter value="false"/>
+            <handleFocus value="true"/>
+            <textAlignment value="left"/>
+            <textVerticalAlignment value="middle"/>
+            <textOffset value="10px 2px"/>
+            <imageSliceId value="noSlice"/>
+            <imageColor value="0 0 0 0"/>
+            <imageFocusedColor value="0 0 0 0"/>
+            <imageHighlightedColor value="0 0 0 0"/>
+            <imageDisabledColor value="0 0 0 0"/>
+        </Profile>
+
+        <Profile name="ajInputOutline" extends="baseReference">
+            <imageSliceId value="gui.3dShop_button_outline_middle"/>
+            <imageColor value="$preset_fs25_colorGrey"/>
+            <imageFocusedColor value="$preset_fs25_colorMainHighlight"/>
+            <imageHighlightedColor value="$preset_fs25_colorMainHighlight"/>
+            <imageDisabledColor value="$preset_fs25_colorGreyDark"/>
+            <startImageSize value="6px 0"/>
+            <startImageSliceId value="gui.3dShop_button_outline_left"/>
+            <startImageColor value="$preset_fs25_colorGrey"/>
+            <startImageFocusedColor value="$preset_fs25_colorMainHighlight"/>
+            <startImageHighlightedColor value="$preset_fs25_colorMainHighlight"/>
+            <startImageDisabledColor value="$preset_fs25_colorGreyDark"/>
+            <endImageSize value="6px 0"/>
+            <endImageSliceId value="gui.3dShop_button_outline_right"/>
+            <endImageColor value="$preset_fs25_colorGrey"/>
+            <endImageFocusedColor value="$preset_fs25_colorMainHighlight"/>
+            <endImageHighlightedColor value="$preset_fs25_colorMainHighlight"/>
+            <endImageDisabledColor value="$preset_fs25_colorGreyDark"/>
+        </Profile>
+
+        <Profile name="ajList" extends="emptyPanel" with="anchorTopLeft">
+            <size value="450px 418px"/>
+        </Profile>
+
+        <Profile name="ajSliderBox" extends="fs25_listSliderBox" with="anchorTopLeft">
+            <size value="6px 418px"/>
+        </Profile>
+
+        <Profile name="ajListItem" extends="fs25_calendarListItem">
+            <height value="32px"/>
+            <imageColor value="$preset_fs25_colorGrey"/>
+            <imageSelectedColor value="$preset_fs25_colorMainHighlight"/>
+            <alternateBackgroundColor value="$preset_fs25_colorGreyDark_50"/>
+        </Profile>
+
+        <Profile name="ajItemGradient" extends="fs25_calendarListItemBg">
+            <imageSelectedColor value="$preset_fs25_colorMainHighlight"/>
+            <startImageSelectedColor value="$preset_fs25_colorMainHighlight"/>
+            <endImageSelectedColor value="$preset_fs25_colorMainHighlight"/>
+        </Profile>
+
+        <Profile name="ajCell" extends="baseReference">
+            <textSize value="14px"/>
+            <textColor value="$preset_fs25_colorMainLight"/>
+            <textSelectedColor value="$preset_fs25_colorMainDark"/>
+            <textAlignment value="left"/>
+            <textVerticalAlignment value="middle"/>
+        </Profile>
+
+    </GUIProfiles>
+</GUI>

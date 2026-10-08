@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <modDesc descVersion="114" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://validation.gdn.giants-software.com/xml/fs25/modDesc.xsd">
   <author>Leonie Gessinger</author>
-  <version>0.2.0.0</version>
+  <version>0.3.0.0</version>
   <title>
     <en>CP/AD Job Book</en>
     <de>CP/AD Auftragsbuch</de>
@@ -11,7 +11,18 @@
     <de><![CDATA[Ein Auftragsbuch pro Fahrzeug für Courseplay und AutoDrive: Ist ein Courseplay-Kurs fertig, fährt AutoDrive zum nächsten Feld und Courseplay arbeitet den nächsten Kurs ab. Privater Singleplayer-Mod.]]></de>
   </description>
   <multiplayer supported="false"/>
+  <l10n filenamePrefix="translations/l10n"/>
   <extraSourceFiles>
     <sourceFile filename="scripts/JobQueue.lua" />
+    <sourceFile filename="scripts/JobBookDialog.lua" />
+    <sourceFile filename="scripts/AddJobDialog.lua" />
   </extraSourceFiles>
+  <actions>
+    <action name="CPADJOBBOOK_OPEN"/>
+  </actions>
+  <inputBinding>
+    <actionBinding action="CPADJOBBOOK_OPEN">
+      <binding device="KB_MOUSE_DEFAULT" input="KEY_lctrl KEY_j" axisComponent="+" inputComponent="+" index="1"/>
+    </actionBinding>
+  </inputBinding>
 </modDesc>

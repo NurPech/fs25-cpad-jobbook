@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+  <texts>
+    <text name="input_CPADJOBBOOK_OPEN" text="Auftragsbuch"/>
+    <text name="jobBook_title" text="Auftragsbuch"/>
+    <text name="jobBook_close" text="Schließen"/>
+    <text name="jobBook_now" text="jetzt"/>
+    <text name="jobBook_running" text="läuft"/>
+    <text name="jobBook_notStarted" text="nicht gestartet"/>
+    <text name="jobBook_empty" text="Keine Aufträge für dieses Fahrzeug"/>
+    <text name="jobBook_colNumber" text="#"/>
+    <text name="jobBook_colCourse" text="Kurs"/>
+    <text name="jobBook_colDestination" text="Ziel"/>
+    <text name="jobBook_remove" text="Entfernen"/>
+    <text name="jobBook_up" text="Hoch"/>
+    <text name="jobBook_down" text="Runter"/>
+    <text name="jobBook_start" text="Starten"/>
+    <text name="jobBook_stop" text="Stoppen"/>
+    <text name="jobBook_add" text="Hinzufügen"/>
+    <text name="addJob_title" text="Auftrag hinzufügen"/>
+    <text name="addJob_courses" text="Kurs"/>
+    <text name="addJob_destinations" text="Ziel"/>
+    <text name="addJob_add" text="Hinzufügen"/>
+    <text name="addJob_hint" text="Kurs und Ziel wählen, zum Filtern tippen (alle Wörter müssen passen)"/>
+    <text name="addJob_selectBoth" text="Bitte zuerst Kurs und Ziel wählen"/>
+    <text name="addJob_added" text="Auftrag %d hinzugefügt: %s -> %s"/>
+  </texts>
+</l10n>

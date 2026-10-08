@@ -14,9 +14,19 @@ Starting a job:
 
 Finishing: `AutoDrive.onCpFinished` is wrapped. If a job is open, it is started shortly after instead of letting AutoDrive park the vehicle.
 
+## Usage (job book window)
+
+Sit in the vehicle (implement attached, AutoDrive mode set up as usual) and press **Ctrl+J** (rebind it in the controls settings, action "Job book"). The window shows the jobs of the vehicle: the running one first ("now"), then the open jobs.
+
+| Button | Purpose |
+|---|---|
+| Add | Opens a second window: courses of the Courseplay course manager on the left, AutoDrive destinations on the right, each with a text filter (every word must be part of the name). *Add* appends the selected pair as a job and stays open for more. |
+| Remove, Up, Down | Change the selected open job. The running job can't be changed. |
+| Start / Stop | Start: begins with the first open job and closes the window (if the vehicle can't start, the reason is shown instead). Stop: the queue doesn't continue after the current course, the open jobs are kept, a running drive or course is not interrupted. |
+
 ## Usage (console)
 
-Sit in the vehicle (implement attached, AutoDrive mode set up as usual) and use:
+The console commands do the same without the window. With the vehicle set up as above, use:
 
 | Command | Purpose |
 |---|---|
@@ -25,7 +35,7 @@ Sit in the vehicle (implement attached, AutoDrive mode set up as usual) and use:
 | `jqAdd <course words> \| <destination words>` | Adds a job, e.g. `jqAdd kalken F02 12m \| Feld 02`. Every word must be part of the name, an unclear match lists the candidates. |
 | `jqList` | Shows the jobs of the vehicle. |
 | `jqStart` | Starts the first job. |
-| `jqStop` | Clears the queue and stops it (a running drive or course is not interrupted). |
+| `jqStop` | Clears the queue and stops it (a running drive or course is not interrupted). Unlike *Stop* in the window, this also removes the open jobs. |
 
 ## Build
 
@@ -33,4 +43,6 @@ Sit in the vehicle (implement attached, AutoDrive mode set up as usual) and use:
 
 ## Status
 
-Version 0.2.0.0 works in the full workflow (hand-over to AutoDrive, next field, refilling during the work). The queues are saved with the savegame in `cpAdJobBook.xml` and are there again after loading. A queue that was running stays running: continue the Courseplay course by hand, and when it finishes the queue goes on with the next job (`jqStop` cancels). The AutoDrive destination is found again by its name if the marker ids change. A menu is planned.
+Version 0.2.0.0 works in the full workflow (hand-over to AutoDrive, next field, refilling during the work). The queues are saved with the savegame in `cpAdJobBook.xml` and are there again after loading. A queue that was running stays running: continue the Courseplay course by hand, and when it finishes the queue goes on with the next job (`jqStop` cancels). The AutoDrive destination is found again by its name if the marker ids change.
+
+Version 0.3.0.0 adds the job book window. Adding, removing, moving and stopping are tested in the game; starting from the window is not yet. The course list is flat (filter by path), there is no folder tree yet.

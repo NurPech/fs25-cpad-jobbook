@@ -14,10 +14,13 @@
 -- Finishing: AutoDrive.onCpFinished is wrapped. Open job -> start it (deferred by a short time so
 -- CP can finish cleanly). No open job -> AD parks as usual.
 --
--- The queues are saved with the savegame (<savegame>/cpAdJobBook.xml). Console commands only, no menu yet.
+-- The queues are saved with the savegame (<savegame>/cpAdJobBook.xml). Operated with console commands
+-- and the window of JobBookDialog (opened with a key).
 
 JobQueue = {}
 JobQueue.modName = g_currentModName
+JobQueue.modDirectory = g_currentModDirectory
+JobQueue.OPEN_ACTION = "CPADJOBBOOK_OPEN"
 JobQueue.queues = {}        -- [vehicle unique id] = { jobs = {...}, running = bool, current = job }
 JobQueue.pending = {}       -- deferred job starts
 JobQueue.START_DELAY = 500
@@ -377,7 +380,7 @@ local function splitArgs(...)
 end
 
 ---True if every word of text is contained in haystack (case insensitive).
-local function matchesWords(text, haystack)
+function JobQueue.matchesWords(text, haystack)
     haystack = string.lower(haystack)
 
     for word in string.gmatch(string.lower(text), "%S+") do
@@ -399,7 +402,7 @@ local function pickUnique(text, entries, getName, what)
 
     local matches = {}
     for _, entry in ipairs(entries) do
-        if matchesWords(text, getName(entry)) then
+        if JobQueue.matchesWords(text, getName(entry)) then
             table.insert(matches, entry)
         end
     end
@@ -446,7 +449,7 @@ function JobQueue:consoleCourses(...)
 
     local courses = {}
     for _, course in ipairs(JobQueue.findCourses()) do
-        if matchesWords(filter, course.relative) then
+        if JobQueue.matchesWords(filter, course.relative) then
             table.insert(courses, course)
         end
     end
@@ -489,7 +492,7 @@ function JobQueue:consoleDestinations(...)
     local destinations = {}
     local filter = table.concat({ ... }, " ")
     for _, destination in ipairs(JobQueue.findDestinations()) do
-        if matchesWords(filter, destination.name) then
+        if JobQueue.matchesWords(filter, destination.name) then
             table.insert(destinations, destination)
         end
     end
@@ -501,6 +504,15 @@ function JobQueue:consoleDestinations(...)
     printLimited(lines)
 
     return string.format("%d destination(s)%s", #destinations, filter == "" and ", filter with e.g. jqDest Feld 02" or " match")
+end
+
+---Appends a job (course entry from findCourses, destination entry from findDestinations) to the
+-- queue of the vehicle. Returns the position of the job.
+function JobQueue:addJob(vehicle, course, destination)
+    local queue = self:getQueue(vehicle, true)
+    table.insert(queue.jobs, { course = course, markerId = destination.id, markerName = destination.name })
+
+    return #queue.jobs
 end
 
 function JobQueue:consoleAdd(...)
@@ -524,10 +536,9 @@ function JobQueue:consoleAdd(...)
         return message .. " (" .. usage .. ")"
     end
 
-    local queue = self:getQueue(vehicle, true)
-    table.insert(queue.jobs, { course = course, markerId = destination.id, markerName = destination.name })
+    local position = self:addJob(vehicle, course, destination)
 
-    return string.format("%s: job %d: '%s' -> '%s'", JobQueue.getVehicleName(vehicle), #queue.jobs, course.relative, destination.name)
+    return string.format("%s: job %d: '%s' -> '%s'", JobQueue.getVehicleName(vehicle), position, course.relative, destination.name)
 end
 
 function JobQueue:consoleList()
@@ -552,6 +563,48 @@ function JobQueue:consoleList()
     return string.format("%s: %d open job(s), queue %s", JobQueue.getVehicleName(vehicle), #queue.jobs, queue.running and "running" or "not started")
 end
 
+---Starts the queue of the vehicle with its first open job. Returns true and a message, or false and
+-- the reason.
+function JobQueue:startQueue(vehicle)
+    local queue = self:getQueue(vehicle, false)
+    if queue == nil or #queue.jobs == 0 then
+        return false, "Queue is empty"
+    end
+
+    local busy = JobQueue.getBusyReason(vehicle)
+    if busy ~= nil then
+        return false, "Can't start: " .. busy
+    end
+
+    local job = table.remove(queue.jobs, 1)
+    queue.running = true
+    queue.current = job
+
+    if not self:startJob(vehicle, job) then
+        queue.running = false
+        queue.current = nil
+        return false, "Could not start the first job, see the log"
+    end
+
+    return true, string.format("Started, %d job(s) open afterwards", #queue.jobs)
+end
+
+---Stops the queue: no further job is started when the current course finishes. The current drive or
+-- course isn't interrupted. keepJobs = false also clears the open jobs.
+function JobQueue:stopQueue(vehicle, keepJobs)
+    local queue = self:getQueue(vehicle, false)
+    if queue == nil then
+        return
+    end
+
+    queue.running = false
+    queue.current = nil
+
+    if not keepJobs then
+        queue.jobs = {}
+    end
+end
+
 function JobQueue:consoleStart()
     local vehicle = JobQueue.getControlledVehicle()
     if vehicle == nil then
@@ -563,22 +616,8 @@ function JobQueue:consoleStart()
         return "Queue is empty, add jobs with jqAdd"
     end
 
-    local busy = JobQueue.getBusyReason(vehicle)
-    if busy ~= nil then
-        return "Can't start: " .. busy
-    end
-
-    local job = table.remove(queue.jobs, 1)
-    queue.running = true
-    queue.current = job
-
-    if not self:startJob(vehicle, job) then
-        queue.running = false
-        queue.current = nil
-        return "Could not start the first job, see the log"
-    end
-
-    return string.format("Started, %d job(s) open afterwards", #queue.jobs)
+    local _, message = self:startQueue(vehicle)
+    return message
 end
 
 function JobQueue:consoleStop()
@@ -587,14 +626,11 @@ function JobQueue:consoleStop()
         return "Sit in the vehicle first"
     end
 
-    local queue = self:getQueue(vehicle, false)
-    if queue == nil then
+    if self:getQueue(vehicle, false) == nil then
         return "Queue is empty"
     end
 
-    queue.running = false
-    queue.current = nil
-    queue.jobs = {}
+    self:stopQueue(vehicle, false)
 
     return "Queue cleared and stopped (the current drive or course is not interrupted)"
 end
@@ -763,10 +799,38 @@ function JobQueue.installHooks()
     return true
 end
 
+---Registers the key that opens the job book. Called for every registration of the global player
+-- actions, which happens both on foot and in a vehicle, inside the input context the game opened.
+function JobQueue.registerActionEvents(inputComponent)
+    if not inputComponent.player.isOwner then
+        return
+    end
+
+    local _, eventId = g_inputBinding:registerActionEvent(JobQueue.OPEN_ACTION, JobQueue, JobQueue.onOpenJobBook, false, true, false, true)
+    if eventId == nil then
+        return
+    end
+
+    -- only worth a line in the help panel while sitting in a vehicle
+    g_inputBinding:setActionEventText(eventId, g_i18n:getText("input_" .. JobQueue.OPEN_ACTION))
+    g_inputBinding:setActionEventTextVisibility(eventId, g_localPlayer ~= nil and g_localPlayer:getCurrentVehicle() ~= nil)
+end
+
+function JobQueue:onOpenJobBook()
+    JobBookDialog.show()
+end
+
+PlayerInputComponent.registerGlobalPlayerActionEvents = Utils.appendedFunction(PlayerInputComponent.registerGlobalPlayerActionEvents, function(self)
+    JobQueue.protected("registerActionEvents", JobQueue.registerActionEvents, self)
+end)
+
 function JobQueue:loadMap()
     if not JobQueue.installHooks() then
         return
     end
+
+    JobQueue.protected("registerDialog", JobBookDialog.register)
+    JobQueue.protected("registerAddJobDialog", AddJobDialog.register)
 
     addConsoleCommand("jqCourses", "Lists Courseplay courses (folders without filter): jqCourses <words>", "consoleCourses", JobQueue)
     addConsoleCommand("jqDest", "Lists AutoDrive destinations: jqDest <words>", "consoleDestinations", JobQueue)

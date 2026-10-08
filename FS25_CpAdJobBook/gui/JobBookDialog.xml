@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<GUI onOpen="onOpen" onClose="onClose">
+    <GuiElement profile="newLayer"/>
+    <Bitmap profile="dialogFullscreenBg" id="dialogBg"/>
+
+    <GuiElement profile="fs25_dialogBg" id="dialogElement" size="1060px 600px">
+        <ThreePartBitmap profile="fs25_dialogBgMiddle"/>
+        <ThreePartBitmap profile="fs25_dialogBgTop"/>
+        <ThreePartBitmap profile="fs25_dialogBgBottom"/>
+
+        <GuiElement profile="fs25_dialogContentContainer">
+            <BoxLayout profile="jbMainBox">
+
+                <Text profile="jbTitle" text="$l10n_jobBook_title" id="titleText"/>
+
+                <GuiElement profile="jbSepWrapper">
+                    <ThreePartBitmap profile="jbSep"/>
+                </GuiElement>
+
+                <GuiElement profile="jbSpacer"/>
+
+                <Text profile="jbStatus" id="statusText"/>
+
+                <GuiElement profile="jbContent">
+                    <Text profile="jbColHeader" position="0px 0px" size="60px 25px" text="$l10n_jobBook_colNumber"/>
+                    <Text profile="jbColHeader" position="60px 0px" size="520px 25px" text="$l10n_jobBook_colCourse"/>
+                    <Text profile="jbColHeader" position="580px 0px" size="340px 25px" text="$l10n_jobBook_colDestination"/>
+
+                    <SmoothList profile="jbList" id="jobList" focusInit="onOpen" selectedWithoutFocus="true" listItemSpacing="0px" listItemLateralSpacing="0px" listSmoothingDisabled="true">
+                        <ListItem profile="jbListItem" name="templateItem">
+                            <ThreePartBitmap profile="jbItemGradient" name="alternating"/>
+                            <Text profile="jbCell" position="0px 0px" size="60px 32px" name="cellNumber"/>
+                            <Text profile="jbCellLeft" position="60px 0px" size="520px 32px" name="cellCourse"/>
+                            <Text profile="jbCellLeft" position="580px 0px" size="340px 32px" name="cellDestination"/>
+                        </ListItem>
+                    </SmoothList>
+                    <ThreePartBitmap profile="jbSliderBox">
+                        <Slider profile="fs25_listSlider" dataElementId="jobList"/>
+                    </ThreePartBitmap>
+
+                    <Text profile="jbEmpty" text="$l10n_jobBook_empty" id="emptyText"/>
+                </GuiElement>
+
+            </BoxLayout>
+        </GuiElement>
+
+        <BoxLayout profile="fs25_dialogButtonBox" size="1000px 60px">
+            <Button profile="jbBtnAdd" text="$l10n_jobBook_add" onClick="onClickAdd"/>
+            <Bitmap profile="fs25_dialogButtonBoxSeparator"/>
+            <Button profile="jbBtnRemove" id="btnRemove" text="$l10n_jobBook_remove" onClick="onClickRemove"/>
+            <Bitmap profile="fs25_dialogButtonBoxSeparator"/>
+            <Button profile="jbBtnUp" id="btnUp" text="$l10n_jobBook_up" onClick="onClickUp"/>
+            <Bitmap profile="fs25_dialogButtonBoxSeparator"/>
+            <Button profile="jbBtnDown" id="btnDown" text="$l10n_jobBook_down" onClick="onClickDown"/>
+            <Bitmap profile="fs25_dialogButtonBoxSeparator"/>
+            <Button profile="buttonOK" id="btnStartStop" text="$l10n_jobBook_start" onClick="onClickStartStop"/>
+            <Bitmap profile="fs25_dialogButtonBoxSeparator"/>
+            <Button profile="buttonBack" text="$l10n_jobBook_close" onClick="onClickBack"/>
+        </BoxLayout>
+    </GuiElement>
+
+    <GUIProfiles>
+
+        <Profile name="jbBtnRemove" extends="buttonOK">
+            <inputAction value="MENU_EXTRA_1"/>
+        </Profile>
+
+        <Profile name="jbBtnAdd" extends="buttonOK">
+            <inputAction value="MENU_EXTRA_2"/>
+        </Profile>
+
+        <Profile name="jbBtnUp" extends="buttonOK">
+            <inputAction value="MENU_PAGE_PREV"/>
+        </Profile>
+
+        <Profile name="jbBtnDown" extends="buttonOK">
+            <inputAction value="MENU_PAGE_NEXT"/>
+        </Profile>
+
+        <Profile name="jbMainBox" extends="emptyPanel" with="anchorTopCenter">
+            <size value="920px 480px"/>
+            <flowDirection value="vertical"/>
+            <alignmentX value="left"/>
+            <alignmentY value="top"/>
+            <elementSpacing value="0px"/>
+        </Profile>
+
+        <Profile name="jbTitle" extends="baseReference">
+            <size value="920px 40px"/>
+            <margin value="0px 4px 0px 0px"/>
+            <textSize value="20px"/>
+            <textBold value="true"/>
+            <textUpperCase value="true"/>
+            <textColor value="$preset_fs25_colorMainLight"/>
+            <textAlignment value="center"/>
+            <textVerticalAlignment value="middle"/>
+        </Profile>
+
+        <Profile name="jbSepWrapper" extends="emptyPanel">
+            <size value="920px 2dp"/>
+        </Profile>
+
+        <Profile name="jbSep" extends="fs25_lineSeparatorTopHighlighted" with="anchorTopCenter">
+            <size value="260px 2dp"/>
+        </Profile>
+
+        <Profile name="jbSpacer" extends="emptyPanel">
+            <size value="920px 15px"/>
+        </Profile>
+
+        <Profile name="jbStatus" extends="baseReference">
+            <size value="920px 30px"/>
+            <textSize value="15px"/>
+            <textColor value="$preset_colorWhite_50"/>
+            <textAlignment value="center"/>
+            <textVerticalAlignment value="middle"/>
+        </Profile>
+
+        <Profile name="jbContent" extends="emptyPanel">
+            <size value="920px 390px"/>
+        </Profile>
+
+        <Profile name="jbColHeader" extends="baseReference" with="anchorTopLeft">
+            <textSize value="13px"/>
+            <textBold value="true"/>
+            <textUpperCase value="true"/>
+            <textColor value="$preset_colorWhite_50"/>
+            <textAlignment value="center"/>
+            <textVerticalAlignment value="middle"/>
+        </Profile>
+
+        <Profile name="jbList" extends="emptyPanel" with="anchorTopLeft">
+            <position value="0px -30px"/>
+            <size value="920px 360px"/>
+        </Profile>
+
+        <Profile name="jbSliderBox" extends="fs25_listSliderBox" with="anchorTopLeft">
+            <position value="914px -30px"/>
+            <size value="6px 360px"/>
+        </Profile>
+
+        <Profile name="jbListItem" extends="fs25_calendarListItem">
+            <height value="32px"/>
+            <imageColor value="$preset_fs25_colorGrey"/>
+            <imageSelectedColor value="$preset_fs25_colorMainHighlight"/>
+            <alternateBackgroundColor value="$preset_fs25_colorGreyDark_50"/>
+        </Profile>
+
+        <Profile name="jbItemGradient" extends="fs25_calendarListItemBg">
+            <imageSelectedColor value="$preset_fs25_colorMainHighlight"/>
+            <startImageSelectedColor value="$preset_fs25_colorMainHighlight"/>
+            <endImageSelectedColor value="$preset_fs25_colorMainHighlight"/>
+        </Profile>
+
+        <Profile name="jbCell" extends="baseReference">
+            <textSize value="14px"/>
+            <textBold value="true"/>
+            <textColor value="$preset_fs25_colorMainLight"/>
+            <textSelectedColor value="$preset_fs25_colorMainDark"/>
+            <textAlignment value="center"/>
+            <textVerticalAlignment value="middle"/>
+        </Profile>
+
+        <Profile name="jbCellLeft" extends="jbCell">
+            <textBold value="false"/>
+            <textAlignment value="left"/>
+        </Profile>
+
+        <Profile name="jbEmpty" extends="baseReference" with="anchorTopLeft">
+            <position value="0px -140px"/>
+            <size value="920px 40px"/>
+            <textSize value="16px"/>
+            <textColor value="$preset_colorWhite_50"/>
+            <textAlignment value="center"/>
+            <textVerticalAlignment value="middle"/>
+        </Profile>
+
+    </GUIProfiles>
+</GUI>

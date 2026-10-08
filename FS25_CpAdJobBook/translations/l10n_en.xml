@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+  <texts>
+    <text name="input_CPADJOBBOOK_OPEN" text="Job book"/>
+    <text name="jobBook_title" text="Job book"/>
+    <text name="jobBook_close" text="Close"/>
+    <text name="jobBook_now" text="now"/>
+    <text name="jobBook_running" text="running"/>
+    <text name="jobBook_notStarted" text="not started"/>
+    <text name="jobBook_empty" text="No jobs for this vehicle"/>
+    <text name="jobBook_colNumber" text="#"/>
+    <text name="jobBook_colCourse" text="Course"/>
+    <text name="jobBook_colDestination" text="Destination"/>
+    <text name="jobBook_remove" text="Remove"/>
+    <text name="jobBook_up" text="Up"/>
+    <text name="jobBook_down" text="Down"/>
+    <text name="jobBook_start" text="Start"/>
+    <text name="jobBook_stop" text="Stop"/>
+    <text name="jobBook_add" text="Add"/>
+    <text name="addJob_title" text="Add job"/>
+    <text name="addJob_courses" text="Course"/>
+    <text name="addJob_destinations" text="Destination"/>
+    <text name="addJob_add" text="Add"/>
+    <text name="addJob_hint" text="Pick a course and a destination, filter by typing (all words must match)"/>
+    <text name="addJob_selectBoth" text="Select a course and a destination first"/>
+    <text name="addJob_added" text="Job %d added: %s -> %s"/>
+  </texts>
+</l10n>
