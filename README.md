@@ -45,4 +45,4 @@ The console commands do the same without the window. With the vehicle set up as 
 
 Version 0.2.0.0 works in the full workflow (hand-over to AutoDrive, next field, refilling during the work). The queues are saved with the savegame in `cpAdJobBook.xml` and are there again after loading. A queue that was running stays running: continue the Courseplay course by hand, and when it finishes the queue goes on with the next job (`jqStop` cancels). The AutoDrive destination is found again by its name if the marker ids change.
 
-Version 0.3.0.0 adds the job book window. Adding, removing, moving and stopping are tested in the game; starting from the window is not yet. The course list is flat (filter by path), there is no folder tree yet.
+Version 0.3.0.0 adds the job book window. Adding, removing, moving, starting and stopping from the window are tested in the game. The course list is flat (filter by path), there is no folder tree yet.
