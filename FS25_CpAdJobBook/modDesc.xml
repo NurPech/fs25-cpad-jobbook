@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<modDesc descVersion="114" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://validation.gdn.giants-software.com/xml/fs25/modDesc.xsd">
+  <author>Leonie Gessinger</author>
+  <version>0.1.3.0</version>
+  <title>
+    <en>CP/AD Job Book</en>
+    <de>CP/AD Auftragsbuch</de>
+  </title>
+  <description>
+    <en><![CDATA[A job queue per vehicle for Courseplay and AutoDrive: when a Courseplay course is finished, AutoDrive drives to the next field and Courseplay works the next course. Private singleplayer mod.]]></en>
+    <de><![CDATA[Ein Auftragsbuch pro Fahrzeug für Courseplay und AutoDrive: Ist ein Courseplay-Kurs fertig, fährt AutoDrive zum nächsten Feld und Courseplay arbeitet den nächsten Kurs ab. Privater Singleplayer-Mod.]]></de>
+  </description>
+  <multiplayer supported="false"/>
+  <extraSourceFiles>
+    <sourceFile filename="scripts/JobQueue.lua" />
+  </extraSourceFiles>
+</modDesc>
