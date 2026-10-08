@@ -14,7 +14,7 @@
 -- Finishing: AutoDrive.onCpFinished is wrapped. Open job -> start it (deferred by a short time so
 -- CP can finish cleanly). No open job -> AD parks as usual.
 --
--- Stage 1: console commands only, queue is kept in memory (not saved with the savegame).
+-- The queues are saved with the savegame (<savegame>/cpAdJobBook.xml). Console commands only, no menu yet.
 
 JobQueue = {}
 JobQueue.modName = g_currentModName
@@ -31,6 +31,14 @@ end
 
 function JobQueue.warn(fmt, ...)
     Logging.warning("[JobQueue] " .. fmt, ...)
+end
+
+---Runs func and logs instead of raising, so a bug here can never break loading or saving a savegame.
+function JobQueue.protected(name, func, ...)
+    local ok, err = pcall(func, ...)
+    if not ok then
+        JobQueue.warn("Error in %s: %s", name, tostring(err))
+    end
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -179,6 +187,32 @@ function JobQueue.getDestination(markerId)
     return AD ~= nil and AD:GetAvailableDestinations()[markerId] or nil
 end
 
+---The current marker id of the job's destination, or nil if it doesn't exist anymore. Marker ids can
+-- change when the AutoDrive network is edited, so the saved name is used to find it again.
+function JobQueue.resolveMarkerId(job)
+    local AD = JobQueue.getAutoDrive()
+    if AD == nil then
+        return nil
+    end
+
+    local destinations = AD:GetAvailableDestinations()
+
+    local byId = destinations[job.markerId]
+    if byId ~= nil and (job.markerName == nil or byId.name == job.markerName) then
+        return byId.id
+    end
+
+    if job.markerName ~= nil then
+        for _, destination in pairs(destinations) do
+            if destination.name == job.markerName then
+                return destination.id
+            end
+        end
+    end
+
+    return nil
+end
+
 ---------------------------------------------------------------------------------------------------
 -- Jobs
 ---------------------------------------------------------------------------------------------------
@@ -213,11 +247,14 @@ function JobQueue:startJob(vehicle, job)
         return false
     end
 
-    local destination = JobQueue.getDestination(job.markerId)
+    local markerId = JobQueue.resolveMarkerId(job)
+    local destination = markerId ~= nil and JobQueue.getDestination(markerId) or nil
     if destination == nil then
-        JobQueue.warn("AutoDrive destination %s doesn't exist anymore", tostring(job.markerId))
+        JobQueue.warn("AutoDrive destination '%s' doesn't exist anymore", tostring(job.markerName or job.markerId))
         return false
     end
+    job.markerId = markerId
+    job.markerName = destination.name
 
     -- appendLoadedCpCourse has no return value (Courseplay ignores it too), so check the result
     vehicle:appendLoadedCpCourse(makeCourseFile(job.course))
@@ -243,7 +280,7 @@ function JobQueue:startJob(vehicle, job)
         return false
     end
 
-    state:setFirstMarker(job.markerId)
+    state:setFirstMarker(markerId)
 
     local helperCp = FS25_AutoDrive.ADStateModule ~= nil and FS25_AutoDrive.ADStateModule.HELPER_CP or 1
     state:setUsedHelper(helperCp)
@@ -488,7 +525,7 @@ function JobQueue:consoleAdd(...)
     end
 
     local queue = self:getQueue(vehicle, true)
-    table.insert(queue.jobs, { course = course, markerId = destination.id })
+    table.insert(queue.jobs, { course = course, markerId = destination.id, markerName = destination.name })
 
     return string.format("%s: job %d: '%s' -> '%s'", JobQueue.getVehicleName(vehicle), #queue.jobs, course.relative, destination.name)
 end
@@ -505,13 +542,11 @@ function JobQueue:consoleList()
     end
 
     if queue.current ~= nil then
-        local destination = JobQueue.getDestination(queue.current.markerId)
-        print(string.format(" now  %s -> %s", queue.current.course.relative, destination ~= nil and destination.name or "?"))
+        print(string.format(" now  %s -> %s", queue.current.course.relative, queue.current.markerName or "?"))
     end
 
     for i, job in ipairs(queue.jobs) do
-        local destination = JobQueue.getDestination(job.markerId)
-        print(string.format("%4d  %s -> %s", i, job.course.relative, destination ~= nil and destination.name or "?"))
+        print(string.format("%4d  %s -> %s", i, job.course.relative, job.markerName or "?"))
     end
 
     return string.format("%s: %d open job(s), queue %s", JobQueue.getVehicleName(vehicle), #queue.jobs, queue.running and "running" or "not started")
@@ -565,6 +600,133 @@ function JobQueue:consoleStop()
 end
 
 ---------------------------------------------------------------------------------------------------
+-- Savegame
+---------------------------------------------------------------------------------------------------
+
+JobQueue.FILENAME = "cpAdJobBook.xml"
+
+function JobQueue.getSavegamePath()
+    local missionInfo = g_currentMission ~= nil and g_currentMission.missionInfo or nil
+    if missionInfo == nil or missionInfo.savegameDirectory == nil then
+        return nil
+    end
+
+    return missionInfo.savegameDirectory .. "/" .. JobQueue.FILENAME
+end
+
+---Course entry as found by findCourses, rebuilt from the path relative to the course root.
+local function courseFromRelative(relative)
+    local directory, name = string.match(relative, "^(.*)/([^/]+)$")
+    local path = JobQueue.getCourseRoot()
+
+    if directory ~= nil then
+        path = path .. "/" .. directory
+    else
+        name = relative
+    end
+
+    return { path = path, name = name, relative = relative }
+end
+
+local function saveJob(xmlFile, key, job)
+    xmlFile:setString(key .. "#course", job.course.relative)
+    xmlFile:setString(key .. "#markerName", job.markerName or "")
+    xmlFile:setInt(key .. "#markerId", job.markerId or 0)
+end
+
+local function loadJob(xmlFile, key)
+    local relative = xmlFile:getString(key .. "#course")
+    if relative == nil then
+        return nil
+    end
+
+    local markerName = xmlFile:getString(key .. "#markerName")
+    if markerName == "" then
+        markerName = nil
+    end
+
+    return { course = courseFromRelative(relative), markerId = xmlFile:getInt(key .. "#markerId", 0), markerName = markerName }
+end
+
+function JobQueue.saveToXMLFile()
+    local path = JobQueue.getSavegamePath()
+    if path == nil then
+        return
+    end
+
+    local xmlFile = XMLFile.create("cpAdJobBookXml", path, "jobBook")
+    if xmlFile == nil then
+        return
+    end
+
+    local count = 0
+    for vehicleKey, queue in pairs(JobQueue.queues) do
+        if #queue.jobs > 0 or queue.running then
+            local key = string.format("jobBook.vehicle(%d)", count)
+            xmlFile:setString(key .. "#id", tostring(vehicleKey))
+            xmlFile:setBool(key .. "#running", queue.running)
+
+            if queue.current ~= nil then
+                saveJob(xmlFile, key .. ".current", queue.current)
+            end
+
+            for i, job in ipairs(queue.jobs) do
+                saveJob(xmlFile, string.format("%s.job(%d)", key, i - 1), job)
+            end
+
+            count = count + 1
+        end
+    end
+
+    xmlFile:save()
+    xmlFile:delete()
+
+    JobQueue.log("saved the queues of %d vehicle(s)", count)
+end
+
+---Loads the saved queues. A queue that was running stays running: the vehicle's Courseplay course
+-- is continued by hand (Courseplay remembers its waypoint), and when it finishes, the queue goes on
+-- with the next open job. jqStop cancels that.
+function JobQueue.loadFromXMLFile()
+    local path = JobQueue.getSavegamePath()
+    if path == nil then
+        return
+    end
+
+    local xmlFile = XMLFile.loadIfExists("cpAdJobBookXml", path, nil)
+    if xmlFile == nil then
+        return
+    end
+
+    local count = 0
+    for _, key in xmlFile:iterator("jobBook.vehicle") do
+        local vehicleKey = xmlFile:getString(key .. "#id")
+
+        if vehicleKey ~= nil then
+            local queue = { jobs = {}, running = xmlFile:getBool(key .. "#running", false), current = nil }
+
+            if xmlFile:hasProperty(key .. ".current") then
+                queue.current = loadJob(xmlFile, key .. ".current")
+            end
+
+            for _, jobKey in xmlFile:iterator(key .. ".job") do
+                local job = loadJob(xmlFile, jobKey)
+                if job ~= nil then
+                    table.insert(queue.jobs, job)
+                end
+            end
+
+            JobQueue.queues[vehicleKey] = queue
+            count = count + 1
+        end
+    end
+
+    xmlFile:delete()
+
+    JobQueue.log("loaded the queues of %d vehicle(s)", count)
+end
+
+---------------------------------------------------------------------------------------------------
 -- Hooks and lifecycle
 ---------------------------------------------------------------------------------------------------
 
@@ -615,5 +777,20 @@ function JobQueue:loadMap()
 
     JobQueue.log("loaded")
 end
+
+-- persistence, same hook points as other savegame mods
+Mission00.loadItemsFinished = Utils.appendedFunction(Mission00.loadItemsFinished, function()
+    JobQueue.protected("loadFromXMLFile", JobQueue.loadFromXMLFile)
+end)
+
+FSCareerMissionInfo.saveToXMLFile = Utils.appendedFunction(FSCareerMissionInfo.saveToXMLFile, function()
+    JobQueue.protected("saveToXMLFile", JobQueue.saveToXMLFile)
+end)
+
+-- start fresh with the next mission
+BaseMission.delete = Utils.prependedFunction(BaseMission.delete, function()
+    JobQueue.queues = {}
+    JobQueue.pending = {}
+end)
 
 addModEventListener(JobQueue)

@@ -33,4 +33,4 @@ Sit in the vehicle (implement attached, AutoDrive mode set up as usual) and use:
 
 ## Status
 
-Version 0.1.3.0 works in the full workflow (hand-over to AutoDrive, next field, refilling during the work). The queue is kept in memory only and is lost when the savegame is reloaded. A menu is planned.
+Version 0.2.0.0 works in the full workflow (hand-over to AutoDrive, next field, refilling during the work). The queues are saved with the savegame in `cpAdJobBook.xml` and are there again after loading. A queue that was running stays running: continue the Courseplay course by hand, and when it finishes the queue goes on with the next job (`jqStop` cancels). The AutoDrive destination is found again by its name if the marker ids change. A menu is planned.
