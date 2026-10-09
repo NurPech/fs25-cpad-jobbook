@@ -9,7 +9,7 @@ A job is a Courseplay course plus an AutoDrive destination (the field). When Cou
 Starting a job:
 
 1. The Courseplay course is loaded into the vehicle and the remembered waypoint is cleared, so the course starts at its beginning. The Courseplay setting "start at" of the vehicle is set to "first waypoint", so a course started by hand afterwards also begins at the start.
-2. The field is put into the first AutoDrive marker (the "target", top row of the AutoDrive HUD). The AutoDrive mode is not changed. Supported modes are *pickup* (load), *drive to* and *deliver to*. In pickup mode the pickup place (second marker) and the fill type stay as set, so AutoDrive can refill during the Courseplay work and returns to the current field.
+2. The field is put into the first AutoDrive marker (the "target", top row of the AutoDrive HUD). The AutoDrive mode is not changed. Supported modes are *pickup* (load), *pickup and deliver*, *drive to* and *deliver to*. In pickup mode the pickup place (second marker) and the fill type stay as set, so AutoDrive can refill during the Courseplay work and returns to the current field. In pickup and deliver mode the field is the pickup place (first marker) and the unload place (second marker) stays as set: when Courseplay reports the vehicle full, AutoDrive unloads there and returns to the field. If a job can't be started (e.g. an unsupported mode), it stays at the front of the queue and the reason is shown in the window.
 3. AutoDrive is started with the Courseplay helper switched on. When AutoDrive reaches the field it hands over to Courseplay on its own.
 
 Finishing: `AutoDrive.onCpFinished` is wrapped. If a job is open, it is started shortly after instead of letting AutoDrive park the vehicle.

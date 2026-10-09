@@ -328,52 +328,64 @@ function JobQueue.setStartAtFirstWaypoint(vehicle)
     end
 end
 
----Loads the course, points AutoDrive at the field and starts it. Returns true on success.
+---Logs the reason and returns false plus the reason, for the failures of startJob.
+local function failStart(reason, ...)
+    local message = string.format(reason, ...)
+    JobQueue.warn("%s", message)
+
+    return false, message
+end
+
+---Loads the course, points AutoDrive at the field and starts it. Returns true on success, or false
+-- and the reason. Nothing is changed on the vehicle before all checks have passed.
 function JobQueue:startJob(vehicle, job)
     local AD = JobQueue.getAutoDrive()
     if AD == nil then
-        JobQueue.warn("AutoDrive not found")
-        return false
+        return failStart("AutoDrive not found")
     end
 
     if vehicle.appendLoadedCpCourse == nil then
-        JobQueue.warn("%s has no Courseplay course support", JobQueue.getVehicleName(vehicle))
-        return false
+        return failStart("%s has no Courseplay course support", JobQueue.getVehicleName(vehicle))
+    end
+
+    if vehicle.ad == nil or vehicle.ad.stateModule == nil then
+        return failStart("%s has no AutoDrive", JobQueue.getVehicleName(vehicle))
     end
 
     local markerId = JobQueue.resolveMarkerId(job)
     local destination = markerId ~= nil and JobQueue.getDestination(markerId) or nil
     if destination == nil then
-        JobQueue.warn("AutoDrive destination '%s' doesn't exist anymore", tostring(job.markerName or job.markerId))
-        return false
+        return failStart("AutoDrive destination '%s' doesn't exist anymore", tostring(job.markerName or job.markerId))
     end
+
+    -- The AutoDrive mode stays as the player set it. The field is the first marker (top row in the
+    -- AutoDrive HUD) in the modes that can work with Courseplay:
+    --   pickup (load): first = target (the field), second = pickup place (e.g. silo, stays),
+    --     bottom row = fill type. The first marker has to be the current field, so AutoDrive
+    --     returns to it after refilling, and it is the position AutoDrive hands over to Courseplay at.
+    --   pickup and deliver: first = pickup place (the field, where Courseplay loads the vehicle),
+    --     second = unload place. Courseplay reports "full", AutoDrive unloads at the second marker and
+    --     returns to the first one.
+    --   drive to / deliver to: the single destination is the first marker as well.
+    local state = vehicle.ad.stateModule
+    local mode = state:getMode()
+
+    if mode ~= AD.MODE_LOAD and mode ~= AD.MODE_PICKUPANDDELIVER and mode ~= AD.MODE_DRIVETO and mode ~= AD.MODE_DELIVERTO then
+        return failStart("%s: AutoDrive mode %s isn't supported, use pickup, pickup and deliver, drive to or deliver to", JobQueue.getVehicleName(vehicle), tostring(mode))
+    end
+
     job.markerId = markerId
     job.markerName = destination.name
 
     -- appendLoadedCpCourse has no return value (Courseplay ignores it too), so check the result
     vehicle:appendLoadedCpCourse(makeCourseFile(job.course))
     if not vehicle:hasCpCourse() then
-        JobQueue.warn("Could not load course '%s'", job.course.relative)
-        return false
+        return failStart("Could not load course '%s'", job.course.relative)
     end
 
     -- the previous course is finished, so start the new one at its beginning
     vehicle:rememberCpLastWaypointIx()
     JobQueue.setStartAtFirstWaypoint(vehicle)
-
-    -- The AutoDrive mode stays as the player set it. The field is the "target", which is the first
-    -- marker (top row in the AutoDrive HUD) in the modes that can work with Courseplay:
-    --   pickup (load): first = target (the field), second = pickup place (e.g. silo, stays),
-    --     bottom row = fill type. The first marker has to be the current field, so AutoDrive
-    --     returns to it after refilling, and it is the position AutoDrive hands over to Courseplay at.
-    --   drive to / deliver to: the single destination is the first marker as well.
-    local state = vehicle.ad.stateModule
-    local mode = state:getMode()
-
-    if mode ~= AD.MODE_LOAD and mode ~= AD.MODE_DRIVETO and mode ~= AD.MODE_DELIVERTO then
-        JobQueue.warn("%s: AutoDrive mode %s isn't supported, use pickup (load), drive to or deliver to", JobQueue.getVehicleName(vehicle), tostring(mode))
-        return false
-    end
 
     state:setFirstMarker(markerId)
 
@@ -432,12 +444,22 @@ function JobQueue:update(dt)
                     entry.tries = entry.tries + 1
                     entry.delay = JobQueue.START_DELAY
                     table.insert(self.pending, entry)
-                elseif busy ~= nil or not self:startJob(vehicle, entry.job) then
-                    local reason = busy or "job could not be started"
-                    JobQueue.warn("%s: stopped the queue (%s)", JobQueue.getVehicleName(vehicle), reason)
-                    queue.running = false
-                    queue.current = nil
-                    JobQueue.emitEvent("queue_stopped", vehicle, reason)
+                else
+                    local ok, reason = false, busy
+                    if busy == nil then
+                        ok, reason = self:startJob(vehicle, entry.job)
+                    end
+
+                    if not ok then
+                        reason = reason or "job could not be started"
+                        JobQueue.warn("%s: stopped the queue (%s)", JobQueue.getVehicleName(vehicle), reason)
+
+                        -- the job never started, so it stays the next one
+                        table.insert(queue.jobs, 1, entry.job)
+                        queue.running = false
+                        queue.current = nil
+                        JobQueue.emitEvent("queue_stopped", vehicle, reason)
+                    end
                 end
             end
         end
@@ -675,10 +697,13 @@ function JobQueue:startQueue(vehicle)
     queue.running = true
     queue.current = job
 
-    if not self:startJob(vehicle, job) then
+    local started, reason = self:startJob(vehicle, job)
+    if not started then
+        -- the job never started, so it stays the first one
+        table.insert(queue.jobs, 1, job)
         queue.running = false
         queue.current = nil
-        return false, "Could not start the first job, see the log"
+        return false, reason or "Could not start the first job, see the log"
     end
 
     return true, string.format("Started, %d job(s) open afterwards", #queue.jobs)
