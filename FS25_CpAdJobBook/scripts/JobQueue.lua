@@ -23,8 +23,11 @@ JobQueue.modDirectory = g_currentModDirectory
 JobQueue.OPEN_ACTION = "CPADJOBBOOK_OPEN"
 JobQueue.queues = {}        -- [vehicle unique id] = { jobs = {...}, running = bool, current = job }
 JobQueue.pending = {}       -- deferred job starts
+JobQueue.pendingClear = {}  -- deferred removal of the Courseplay course after a finished queue
 JobQueue.START_DELAY = 500
 JobQueue.MAX_START_TRIES = 20
+JobQueue.CLEAR_COURSE_DELAY = 2000
+JobQueue.MAX_CLEAR_TRIES = 15
 JobQueue.MAX_LIST_LINES = 15
 JobQueue.MAX_SCAN_DEPTH = 4
 JobQueue.EVENTS_FILENAME = "events.json"
@@ -416,6 +419,7 @@ function JobQueue:handleCpFinished(vehicle)
         queue.running = false
         queue.current = nil
         JobQueue.emitEvent("queue_finished", vehicle)
+        table.insert(self.pendingClear, { vehicle = vehicle, delay = JobQueue.CLEAR_COURSE_DELAY, tries = 0 })
         return false
     end
 
@@ -425,7 +429,40 @@ function JobQueue:handleCpFinished(vehicle)
     return true
 end
 
+---Removes the course of the last job from the vehicle, once the queue is finished and Courseplay has
+-- really stopped. Does nothing if a queue runs again in the meantime, or if Courseplay is still busy
+-- after a while (e.g. the course was started by hand again).
+function JobQueue:updateClearCourse(dt)
+    for i = #self.pendingClear, 1, -1 do
+        local entry = self.pendingClear[i]
+        entry.delay = entry.delay - dt
+
+        if entry.delay <= 0 then
+            table.remove(self.pendingClear, i)
+
+            local vehicle = entry.vehicle
+            local queue = vehicle ~= nil and not vehicle.isDeleted and self:getQueue(vehicle, false) or nil
+            local queueRuns = queue ~= nil and queue.running
+
+            if vehicle ~= nil and not vehicle.isDeleted and not queueRuns and vehicle.resetCpCoursesFromGui ~= nil then
+                if vehicle.getIsCpActive ~= nil and vehicle:getIsCpActive() then
+                    if entry.tries < JobQueue.MAX_CLEAR_TRIES then
+                        entry.tries = entry.tries + 1
+                        entry.delay = JobQueue.START_DELAY * 2
+                        table.insert(self.pendingClear, entry)
+                    end
+                elseif vehicle:hasCpCourse() then
+                    vehicle:resetCpCoursesFromGui()
+                    JobQueue.log("%s: queue finished, removed the Courseplay course", JobQueue.getVehicleName(vehicle))
+                end
+            end
+        end
+    end
+end
+
 function JobQueue:update(dt)
+    self:updateClearCourse(dt)
+
     for i = #self.pending, 1, -1 do
         local entry = self.pending[i]
         entry.delay = entry.delay - dt
@@ -993,6 +1030,7 @@ end)
 BaseMission.delete = Utils.prependedFunction(BaseMission.delete, function()
     JobQueue.queues = {}
     JobQueue.pending = {}
+    JobQueue.pendingClear = {}
 end)
 
 addModEventListener(JobQueue)

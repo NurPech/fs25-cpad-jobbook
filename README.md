@@ -12,7 +12,7 @@ Starting a job:
 2. The field is put into the first AutoDrive marker (the "target", top row of the AutoDrive HUD). The AutoDrive mode is not changed. Supported modes are *pickup* (load), *pickup and deliver*, *drive to* and *deliver to*. In pickup mode the pickup place (second marker) and the fill type stay as set, so AutoDrive can refill during the Courseplay work and returns to the current field. In pickup and deliver mode the field is the pickup place (first marker) and the unload place (second marker) stays as set: when Courseplay reports the vehicle full, AutoDrive unloads there and returns to the field. If a job can't be started (e.g. an unsupported mode), it stays at the front of the queue and the reason is shown in the window.
 3. AutoDrive is started with the Courseplay helper switched on. When AutoDrive reaches the field it hands over to Courseplay on its own.
 
-Finishing: `AutoDrive.onCpFinished` is wrapped. If a job is open, it is started shortly after instead of letting AutoDrive park the vehicle.
+Finishing: `AutoDrive.onCpFinished` is wrapped. If a job is open, it is started shortly after instead of letting AutoDrive park the vehicle. When the last job is done, AutoDrive parks as usual and, a moment later (once Courseplay has stopped), the Courseplay course is removed from the vehicle, like the remove button in the Courseplay HUD. This only happens when the queue finishes, not when you stop it or a job can't be started.
 
 ## Usage (job book window)
 
@@ -56,3 +56,5 @@ Version 0.3.0.0 adds the job book window. Adding, removing, moving, starting and
 Version 0.3.1.0 sets the Courseplay "start at" setting to "first waypoint" whenever a job is started.
 
 Version 0.3.2.0 refreshes the job book window while it is open, so it follows the queue when a job starts or finishes.
+
+Version 0.4.2.0 removes the Courseplay course from the vehicle when the queue is finished.
