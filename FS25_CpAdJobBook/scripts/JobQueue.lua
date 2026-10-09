@@ -27,6 +27,10 @@ JobQueue.START_DELAY = 500
 JobQueue.MAX_START_TRIES = 20
 JobQueue.MAX_LIST_LINES = 15
 JobQueue.MAX_SCAN_DEPTH = 4
+JobQueue.EVENTS_FILENAME = "events.json"
+JobQueue.MAX_EVENTS = 20
+JobQueue.events = {}        -- the last events, newest last (see emitEvent)
+JobQueue.eventCounter = 0
 
 function JobQueue.log(fmt, ...)
     print(string.format("[JobQueue] " .. fmt, ...))
@@ -217,6 +221,69 @@ function JobQueue.resolveMarkerId(job)
 end
 
 ---------------------------------------------------------------------------------------------------
+-- Events for external programs
+---------------------------------------------------------------------------------------------------
+
+---The game can't open network connections, so the events are written to a file that the
+-- external program next to the game reads and forwards. io.open only writes (it overwrites), so
+-- the file always holds the last MAX_EVENTS events as a whole.
+
+local JSON_ESCAPES = { ['"'] = '\\"', ['\\'] = '\\\\', ['\n'] = '\\n', ['\r'] = '\\r', ['\t'] = '\\t' }
+
+local function jsonString(value)
+    local escaped = string.gsub(tostring(value), '[%c"\\]', function(char)
+        return JSON_ESCAPES[char] or string.format("\\u%04x", string.byte(char))
+    end)
+
+    return '"' .. escaped .. '"'
+end
+
+function JobQueue.getEventsPath()
+    return string.format("%smodSettings/%s/%s", getUserProfileAppPath(), JobQueue.modName, JobQueue.EVENTS_FILENAME)
+end
+
+function JobQueue.writeEvents()
+    createFolder(string.format("%smodSettings/%s", getUserProfileAppPath(), JobQueue.modName))
+
+    local file = io.open(JobQueue.getEventsPath(), "w")
+    if file == nil then
+        JobQueue.warn("Could not write %s", JobQueue.getEventsPath())
+        return
+    end
+
+    local lines = {}
+    for _, event in ipairs(JobQueue.events) do
+        table.insert(lines, string.format('  {"id": %s, "time": %s, "type": %s, "vehicle": %s, "reason": %s}',
+            jsonString(event.id), jsonString(event.time), jsonString(event.type), jsonString(event.vehicle), jsonString(event.reason)))
+    end
+
+    file:write("[\n", table.concat(lines, ",\n"), "\n]\n")
+    file:close()
+end
+
+---Records an event ("queue_finished" or "queue_stopped") and writes the events file. The id is unique
+-- across game starts (start time of the game plus a counter), so a reader can tell new events from
+-- old ones.
+function JobQueue.emitEvent(eventType, vehicle, reason)
+    JobQueue.session = JobQueue.session or getDate("%Y%m%d%H%M%S")
+    JobQueue.eventCounter = JobQueue.eventCounter + 1
+
+    table.insert(JobQueue.events, {
+        id = JobQueue.session .. "-" .. JobQueue.eventCounter,
+        time = getDate("%Y-%m-%dT%H:%M:%S"),
+        type = eventType,
+        vehicle = JobQueue.getVehicleName(vehicle),
+        reason = reason or ""
+    })
+
+    while #JobQueue.events > JobQueue.MAX_EVENTS do
+        table.remove(JobQueue.events, 1)
+    end
+
+    JobQueue.protected("writeEvents", JobQueue.writeEvents)
+end
+
+---------------------------------------------------------------------------------------------------
 -- Jobs
 ---------------------------------------------------------------------------------------------------
 
@@ -336,6 +403,7 @@ function JobQueue:handleCpFinished(vehicle)
         JobQueue.log("%s: no open jobs left, AutoDrive parks", JobQueue.getVehicleName(vehicle))
         queue.running = false
         queue.current = nil
+        JobQueue.emitEvent("queue_finished", vehicle)
         return false
     end
 
@@ -365,9 +433,11 @@ function JobQueue:update(dt)
                     entry.delay = JobQueue.START_DELAY
                     table.insert(self.pending, entry)
                 elseif busy ~= nil or not self:startJob(vehicle, entry.job) then
-                    JobQueue.warn("%s: stopped the queue (%s)", JobQueue.getVehicleName(vehicle), busy or "job could not be started")
+                    local reason = busy or "job could not be started"
+                    JobQueue.warn("%s: stopped the queue (%s)", JobQueue.getVehicleName(vehicle), reason)
                     queue.running = false
                     queue.current = nil
+                    JobQueue.emitEvent("queue_stopped", vehicle, reason)
                 end
             end
         end
@@ -660,6 +730,23 @@ function JobQueue:consoleStop()
     return "Queue cleared and stopped (the current drive or course is not interrupted)"
 end
 
+---Writes a test event, to try the way through the events file without finishing a course.
+-- "jqTestEvent" is a finished queue, "jqTestEvent stopped" a stopped one.
+function JobQueue:consoleTestEvent(kind)
+    local vehicle = JobQueue.getControlledVehicle()
+    if vehicle == nil then
+        return "Sit in the vehicle first"
+    end
+
+    if kind == "stopped" then
+        JobQueue.emitEvent("queue_stopped", vehicle, "test event")
+    else
+        JobQueue.emitEvent("queue_finished", vehicle)
+    end
+
+    return string.format("Wrote a test event to %s", JobQueue.getEventsPath())
+end
+
 ---------------------------------------------------------------------------------------------------
 -- Savegame
 ---------------------------------------------------------------------------------------------------
@@ -863,6 +950,7 @@ function JobQueue:loadMap()
     addConsoleCommand("jqList", "Shows the jobs of the current vehicle", "consoleList", JobQueue)
     addConsoleCommand("jqStart", "Starts the queue of the current vehicle", "consoleStart", JobQueue)
     addConsoleCommand("jqStop", "Clears and stops the queue of the current vehicle", "consoleStop", JobQueue)
+    addConsoleCommand("jqTestEvent", "Writes a test event to the events file: jqTestEvent [stopped]", "consoleTestEvent", JobQueue)
 
     JobQueue.log("loaded")
 end

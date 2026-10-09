@@ -37,6 +37,12 @@ The console commands do the same without the window. With the vehicle set up as 
 | `jqStart` | Starts the first job. |
 | `jqStop` | Clears the queue and stops it (a running drive or course is not interrupted). Unlike *Stop* in the window, this also removes the open jobs. |
 
+## Events file
+
+When the queue of a vehicle is finished (the last course is done, no open job left) or stops because a job can't be started, the mod writes an event to `modSettings/FS25_CpAdJobBook/events.json` (the last 20 events, each with `id`, `time`, `type` (`queue_finished` / `queue_stopped`), `vehicle`, `queue` (the queue name) and `reason`). A game mod can't open network connections, so the mod only writes the file: any external program can watch it and forward the events (a message, a smart home notification, ...).
+
+To try it without finishing a course, sit in a vehicle and enter `jqTestEvent` (a finished queue) or `jqTestEvent stopped` in the game console: it writes a test event.
+
 ## Build
 
 `build.ps1` packs `FS25_CpAdJobBook/` into `FS25_CpAdJobBook.zip` in the mods folder (default `D:\GameData\FarmingSimulator2025\mods`). Close the game first, it locks the zip while running.
