@@ -24,5 +24,6 @@
     <text name="addJob_hint" text="Pick a course and a destination, filter by typing (all words must match)"/>
     <text name="addJob_selectBoth" text="Select a course and a destination first"/>
     <text name="addJob_added" text="Job %d added: %s -> %s"/>
+    <text name="jobBook_renamePrompt" text="Queue name"/>
   </texts>
 </l10n>

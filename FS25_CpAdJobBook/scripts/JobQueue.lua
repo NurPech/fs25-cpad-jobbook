@@ -83,11 +83,34 @@ function JobQueue:getQueue(vehicle, create)
     local queue = self.queues[key]
 
     if queue == nil and create then
-        queue = { jobs = {}, running = false, current = nil }
+        queue = { jobs = {}, running = false, current = nil, name = nil }
         self.queues[key] = queue
     end
 
     return queue
+end
+
+---Gives the queue of the vehicle a name (shown in the window and in the events). An empty
+-- text removes the name.
+function JobQueue:setQueueName(vehicle, name)
+    name = string.gsub(name or "", "^%s*(.-)%s*$", "%1")
+
+    if name == "" then
+        local queue = self:getQueue(vehicle, false)
+        if queue ~= nil then
+            queue.name = nil
+        end
+        return
+    end
+
+    self:getQueue(vehicle, true).name = name
+end
+
+---The name of the queue of the vehicle, or nil.
+function JobQueue:getQueueName(vehicle)
+    local queue = self:getQueue(vehicle, false)
+
+    return queue ~= nil and queue.name or nil
 end
 
 ---A file-like object for appendLoadedCpCourse, which only calls file:load(). Same behavior as the
@@ -256,8 +279,8 @@ function JobQueue.writeEvents()
 
     local lines = {}
     for _, event in ipairs(JobQueue.events) do
-        table.insert(lines, string.format('  {"id": %s, "time": %s, "type": %s, "vehicle": %s, "reason": %s}',
-            jsonString(event.id), jsonString(event.time), jsonString(event.type), jsonString(event.vehicle), jsonString(event.reason)))
+        table.insert(lines, string.format('  {"id": %s, "time": %s, "type": %s, "vehicle": %s, "queue": %s, "reason": %s}',
+            jsonString(event.id), jsonString(event.time), jsonString(event.type), jsonString(event.vehicle), jsonString(event.queue), jsonString(event.reason)))
     end
 
     file:write("[\n", table.concat(lines, ",\n"), "\n]\n")
@@ -276,6 +299,7 @@ function JobQueue.emitEvent(eventType, vehicle, reason)
         time = getDate("%Y-%m-%dT%H:%M:%S"),
         type = eventType,
         vehicle = JobQueue.getVehicleName(vehicle),
+        queue = JobQueue:getQueueName(vehicle) or "",
         reason = reason or ""
     })
 
@@ -714,7 +738,9 @@ function JobQueue:consoleList()
         print(string.format("%4d  %s -> %s", i, job.course.relative, job.markerName or "?"))
     end
 
-    return string.format("%s: %d open job(s), queue %s", JobQueue.getVehicleName(vehicle), #queue.jobs, queue.running and "running" or "not started")
+    local label = queue.name ~= nil and string.format("%s '%s'", JobQueue.getVehicleName(vehicle), queue.name) or JobQueue.getVehicleName(vehicle)
+
+    return string.format("%s: %d open job(s), queue %s", label, #queue.jobs, queue.running and "running" or "not started")
 end
 
 ---Starts the queue of the vehicle with its first open job. Returns true and a message, or false and
@@ -790,6 +816,23 @@ function JobQueue:consoleStop()
     self:stopQueue(vehicle, false)
 
     return "Queue cleared and stopped (the current drive or course is not interrupted)"
+end
+
+---Names the queue of the current vehicle: jqName <text>. Without text the name is removed.
+function JobQueue:consoleName(...)
+    local vehicle = JobQueue.getControlledVehicle()
+    if vehicle == nil then
+        return "Sit in the vehicle first"
+    end
+
+    self:setQueueName(vehicle, table.concat({ ... }, " "))
+
+    local name = self:getQueueName(vehicle)
+    if name == nil then
+        return string.format("%s: queue has no name", JobQueue.getVehicleName(vehicle))
+    end
+
+    return string.format("%s: queue is called '%s'", JobQueue.getVehicleName(vehicle), name)
 end
 
 ---Writes a test event, to try the way through the events file without finishing a course.
@@ -871,10 +914,14 @@ function JobQueue.saveToXMLFile()
 
     local count = 0
     for vehicleKey, queue in pairs(JobQueue.queues) do
-        if #queue.jobs > 0 or queue.running then
+        if #queue.jobs > 0 or queue.running or queue.name ~= nil then
             local key = string.format("jobBook.vehicle(%d)", count)
             xmlFile:setString(key .. "#id", tostring(vehicleKey))
             xmlFile:setBool(key .. "#running", queue.running)
+
+            if queue.name ~= nil then
+                xmlFile:setString(key .. "#name", queue.name)
+            end
 
             if queue.current ~= nil then
                 saveJob(xmlFile, key .. ".current", queue.current)
@@ -913,7 +960,12 @@ function JobQueue.loadFromXMLFile()
         local vehicleKey = xmlFile:getString(key .. "#id")
 
         if vehicleKey ~= nil then
-            local queue = { jobs = {}, running = xmlFile:getBool(key .. "#running", false), current = nil }
+            local queue = { jobs = {}, running = xmlFile:getBool(key .. "#running", false), current = nil, name = nil }
+
+            local name = xmlFile:getString(key .. "#name")
+            if name ~= nil and name ~= "" then
+                queue.name = name
+            end
 
             if xmlFile:hasProperty(key .. ".current") then
                 queue.current = loadJob(xmlFile, key .. ".current")
@@ -1012,6 +1064,7 @@ function JobQueue:loadMap()
     addConsoleCommand("jqList", "Shows the jobs of the current vehicle", "consoleList", JobQueue)
     addConsoleCommand("jqStart", "Starts the queue of the current vehicle", "consoleStart", JobQueue)
     addConsoleCommand("jqStop", "Clears and stops the queue of the current vehicle", "consoleStop", JobQueue)
+    addConsoleCommand("jqName", "Names the queue of the current vehicle (shown in the window and in the events): jqName <text>", "consoleName", JobQueue)
     addConsoleCommand("jqTestEvent", "Writes a test event to the events file: jqTestEvent [stopped]", "consoleTestEvent", JobQueue)
 
     JobQueue.log("loaded")

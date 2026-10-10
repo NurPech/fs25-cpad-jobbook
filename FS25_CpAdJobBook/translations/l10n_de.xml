@@ -24,5 +24,6 @@
     <text name="addJob_hint" text="Kurs und Ziel wählen, zum Filtern tippen (alle Wörter müssen passen)"/>
     <text name="addJob_selectBoth" text="Bitte zuerst Kurs und Ziel wählen"/>
     <text name="addJob_added" text="Auftrag %d hinzugefügt: %s -> %s"/>
+    <text name="jobBook_renamePrompt" text="Name der Warteschlange"/>
   </texts>
 </l10n>

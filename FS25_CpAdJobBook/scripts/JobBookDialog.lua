@@ -2,7 +2,7 @@
 --
 -- The window of the job book: shows the jobs of the vehicle the player sits in. Opened with the
 -- CPADJOBBOOK_OPEN key (see JobQueue.registerActionEvents). Select an open job to remove it or move
--- it up or down, "Add" opens the AddJobDialog. The job that is running right now (first row, "now") can't be changed. Start begins
+-- it up or down, "Add" opens the AddJobDialog, a click on the status line gives the queue a name. The job that is running right now (first row, "now") can't be changed. Start begins
 -- with the first open job, Stop keeps the open jobs but doesn't continue after the current course.
 
 JobBookDialog = {}
@@ -10,6 +10,7 @@ local JobBookDialog_mt = Class(JobBookDialog, MessageDialog)
 
 JobBookDialog.NAME = "JobBookDialog"
 JobBookDialog.REFRESH_INTERVAL = 500
+JobBookDialog.MAX_NAME_LENGTH = 40
 JobBookDialog.CONTROLS = {
     "titleText",
     "statusText",
@@ -63,7 +64,7 @@ function JobBookDialog:getQueueSignature()
         return "none"
     end
 
-    local parts = { tostring(queue.running), tostring(queue.current) }
+    local parts = { tostring(queue.running), tostring(queue.current), tostring(queue.name) }
     for _, job in ipairs(queue.jobs) do
         table.insert(parts, tostring(job))
     end
@@ -114,6 +115,25 @@ function JobBookDialog:onAddJobClosed()
 
     -- the running job (if any) is the first row, then the open jobs
     self:refresh(#queue.jobs + (queue.current ~= nil and 1 or 0))
+end
+
+---Asks for a name of the queue with the text input dialog of the game (click on the status line).
+function JobBookDialog:onClickRename()
+    if self.vehicle == nil then
+        return
+    end
+
+    TextInputDialog.show(JobBookDialog.onRenameEntered, self, JobQueue:getQueueName(self.vehicle) or "",
+        g_i18n:getText("jobBook_renamePrompt"), nil, JobBookDialog.MAX_NAME_LENGTH, g_i18n:getText("button_ok"))
+end
+
+function JobBookDialog:onRenameEntered(text, clickOk)
+    if not clickOk then
+        return
+    end
+
+    JobQueue:setQueueName(self.vehicle, text)
+    self:refresh(self.jobList.selectedIndex)
 end
 
 function JobBookDialog:onClickRemove()
@@ -217,7 +237,11 @@ function JobBookDialog:refresh(selectIndex, selectJob)
 
     local name = vehicle ~= nil and JobQueue.getVehicleName(vehicle) or "?"
     local state = (queue ~= nil and queue.running) and g_i18n:getText("jobBook_running") or g_i18n:getText("jobBook_notStarted")
-    self.statusText:setText(string.format("%s - %s", name, state))
+    if queue ~= nil and queue.name ~= nil then
+        self.statusText:setText(string.format("%s - %s - %s", queue.name, name, state))
+    else
+        self.statusText:setText(string.format("%s - %s", name, state))
+    end
 
     self.emptyText:setVisible(#self.rows == 0)
     self.jobList:reloadData()

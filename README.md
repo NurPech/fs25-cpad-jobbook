@@ -21,6 +21,7 @@ Sit in the vehicle (implement attached, AutoDrive mode set up as usual) and pres
 | Button | Purpose |
 |---|---|
 | Add | Opens a second window: courses of the Courseplay course manager on the left, AutoDrive destinations on the right, each with a text filter (every word must be part of the name). *Add* appends the selected pair as a job and stays open for more. |
+| Status line (click) | Gives the queue of the vehicle a name (text input of the game), shown in the status line and written into the events. An empty text removes the name. The line lights up when the mouse is over it. |
 | Remove, Up, Down | Change the selected open job. The running job can't be changed. |
 | Start / Stop | Start: begins with the first open job and closes the window (if the vehicle can't start, the reason is shown instead). Stop: the queue doesn't continue after the current course, the open jobs are kept, a running drive or course is not interrupted. |
 
@@ -36,6 +37,7 @@ The console commands do the same without the window. With the vehicle set up as 
 | `jqList` | Shows the jobs of the vehicle. |
 | `jqStart` | Starts the first job. |
 | `jqStop` | Clears the queue and stops it (a running drive or course is not interrupted). Unlike *Stop* in the window, this also removes the open jobs. |
+| `jqName <text>` | Names the queue of the vehicle (without text: removes the name). |
 
 ## Events file
 
@@ -58,3 +60,5 @@ Version 0.3.1.0 sets the Courseplay "start at" setting to "first waypoint" whene
 Version 0.3.2.0 refreshes the job book window while it is open, so it follows the queue when a job starts or finishes.
 
 Version 0.4.2.0 removes the Courseplay course from the vehicle when the queue is finished.
+
+Version 0.5.0.0 adds names for the queues (window, `jqName`, savegame, field `queue` in the events file).

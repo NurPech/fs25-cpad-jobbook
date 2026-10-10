@@ -19,7 +19,7 @@
 
                 <GuiElement profile="jbSpacer"/>
 
-                <Text profile="jbStatus" id="statusText"/>
+                <Button profile="jbStatusBtn" id="statusText" onClick="onClickRename"/>
 
                 <GuiElement profile="jbContent">
                     <Text profile="jbColHeader" position="0px 0px" size="60px 25px" text="$l10n_jobBook_colNumber"/>
@@ -114,6 +114,21 @@
             <textColor value="$preset_colorWhite_50"/>
             <textAlignment value="center"/>
             <textVerticalAlignment value="middle"/>
+        </Profile>
+
+        <!-- the status line is a button without background (like in the BankCredit mod): click to rename the queue -->
+        <Profile name="jbStatusBtn" extends="baseReference">
+            <size value="920px 30px"/>
+            <textSize value="15px"/>
+            <textColor value="$preset_colorWhite_50"/>
+            <textFocusedColor value="$preset_fs25_colorMainHighlight"/>
+            <textHighlightedColor value="$preset_fs25_colorMainHighlight"/>
+            <textAlignment value="center"/>
+            <textVerticalAlignment value="middle"/>
+            <imageColor value="0 0 0 0"/>
+            <imageFocusedColor value="0 0 0 0"/>
+            <imageHighlightedColor value="0 0 0 0"/>
+            <imagePressedColor value="0 0 0 0"/>
         </Profile>
 
         <Profile name="jbContent" extends="emptyPanel">
