@@ -331,6 +331,58 @@ function JobQueue.getBusyReason(vehicle)
     return nil
 end
 
+---Seconds as "1h 05m", "3:20" or "45s", like the HUD of the helpers.
+function JobQueue.formatDuration(seconds)
+    seconds = math.floor(seconds)
+    if seconds >= 3600 then
+        return string.format("%dh %02dm", math.floor(seconds / 3600), math.floor(seconds / 60) % 60)
+    elseif seconds >= 60 then
+        return string.format("%d:%02d", math.floor(seconds / 60), seconds % 60)
+    end
+
+    return string.format("%ds", seconds)
+end
+
+---What the vehicle does right now and how long it takes, as one line for the job book, or nil if
+-- neither Courseplay nor AutoDrive is active. Courseplay wins because AutoDrive hands over to it and
+-- may still be flagged active. Both mods are only read, everything is checked for nil.
+function JobQueue.getActivityText(vehicle)
+    if vehicle.getIsCpActive ~= nil and vehicle:getIsCpActive() then
+        local parts = { g_i18n:getText("jobBook_activityCp") }
+
+        local status = vehicle.getCpStatus ~= nil and vehicle:getCpStatus() or nil
+        if status ~= nil and status.currentWaypointIx ~= nil and status.numberOfWaypoints ~= nil then
+            table.insert(parts, string.format("%d/%d", status.currentWaypointIx, status.numberOfWaypoints))
+        end
+        if status ~= nil and status.remainingTimeText ~= nil and status.remainingTimeText ~= "" then
+            table.insert(parts, g_i18n:getText("jobBook_remaining"):format(status.remainingTimeText))
+        end
+
+        return table.concat(parts, " - ")
+    end
+
+    local state = vehicle.ad ~= nil and vehicle.ad.stateModule or nil
+    if state ~= nil and state:isActive() then
+        local info = state:getCurrentTaskInfo()
+        local autoDrive = JobQueue.getAutoDrive()
+        if info ~= nil and info ~= "" and autoDrive ~= nil and autoDrive.localize ~= nil then
+            info = autoDrive.localize(info)
+        else
+            info = g_i18n:getText("jobBook_activityAd")
+        end
+
+        local parts = { info }
+        local seconds = state:getRemainingDriveTime()
+        if seconds ~= nil and seconds > 0 then
+            table.insert(parts, g_i18n:getText("jobBook_remaining"):format(JobQueue.formatDuration(seconds)))
+        end
+
+        return table.concat(parts, " - ")
+    end
+
+    return nil
+end
+
 ---Sets the Courseplay setting "start at" of the vehicle (HUD and key binds) to "first waypoint". The
 -- hand-over of AutoDrive doesn't use it (it starts at the remembered waypoint, which is cleared), but
 -- it applies when the course is started by hand, e.g. after stopping the queue.

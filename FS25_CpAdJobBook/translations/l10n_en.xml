@@ -25,5 +25,8 @@
     <text name="addJob_selectBoth" text="Select a course and a destination first"/>
     <text name="addJob_added" text="Job %d added: %s -> %s"/>
     <text name="jobBook_renamePrompt" text="Queue name"/>
+    <text name="jobBook_activityCp" text="Courseplay is working"/>
+    <text name="jobBook_activityAd" text="AutoDrive is driving"/>
+    <text name="jobBook_remaining" text="%s left"/>
   </texts>
 </l10n>

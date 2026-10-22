@@ -20,6 +20,7 @@
                 <GuiElement profile="jbSpacer"/>
 
                 <Button profile="jbStatusBtn" id="statusText" onClick="onClickRename"/>
+                <Text profile="jbActivity" id="activityText"/>
 
                 <GuiElement profile="jbContent">
                     <Text profile="jbColHeader" position="0px 0px" size="60px 25px" text="$l10n_jobBook_colNumber"/>
@@ -131,8 +132,16 @@
             <imagePressedColor value="0 0 0 0"/>
         </Profile>
 
+        <Profile name="jbActivity" extends="baseReference">
+            <size value="920px 24px"/>
+            <textSize value="14px"/>
+            <textColor value="$preset_fs25_colorMainLight"/>
+            <textAlignment value="center"/>
+            <textVerticalAlignment value="middle"/>
+        </Profile>
+
         <Profile name="jbContent" extends="emptyPanel">
-            <size value="920px 390px"/>
+            <size value="920px 366px"/>
         </Profile>
 
         <Profile name="jbColHeader" extends="baseReference" with="anchorTopLeft">
@@ -146,12 +155,12 @@
 
         <Profile name="jbList" extends="emptyPanel" with="anchorTopLeft">
             <position value="0px -30px"/>
-            <size value="920px 360px"/>
+            <size value="920px 336px"/>
         </Profile>
 
         <Profile name="jbSliderBox" extends="fs25_listSliderBox" with="anchorTopLeft">
             <position value="914px -30px"/>
-            <size value="6px 360px"/>
+            <size value="6px 336px"/>
         </Profile>
 
         <Profile name="jbListItem" extends="fs25_calendarListItem">

@@ -25,5 +25,8 @@
     <text name="addJob_selectBoth" text="Bitte zuerst Kurs und Ziel wählen"/>
     <text name="addJob_added" text="Auftrag %d hinzugefügt: %s -> %s"/>
     <text name="jobBook_renamePrompt" text="Name der Warteschlange"/>
+    <text name="jobBook_activityCp" text="Courseplay arbeitet"/>
+    <text name="jobBook_activityAd" text="AutoDrive fährt"/>
+    <text name="jobBook_remaining" text="noch %s"/>
   </texts>
 </l10n>

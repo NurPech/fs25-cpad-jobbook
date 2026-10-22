@@ -47,7 +47,7 @@ To try it without finishing a course, sit in a vehicle and enter `jqTestEvent` (
 
 ## Build
 
-`build.ps1` packs `FS25_CpAdJobBook/` into `FS25_CpAdJobBook.zip` in the mods folder (default `D:\GameData\FarmingSimulator2025\mods`). Close the game first, it locks the zip while running.
+`build.ps1` packs `FS25_CpAdJobBook/` into `FS25_CpAdJobBook.zip` in the mods folder (default `E:\GameData\FarmingSimulator2025\mods`). Close the game first, it locks the zip while running.
 
 ## Status
 
@@ -62,3 +62,5 @@ Version 0.3.2.0 refreshes the job book window while it is open, so it follows th
 Version 0.4.2.0 removes the Courseplay course from the vehicle when the queue is finished.
 
 Version 0.5.0.0 adds names for the queues (window, `jqName`, savegame, field `queue` in the events file).
+
+Version 0.6.0.0 shows what the vehicle does right now in the job book window: the AutoDrive task ("Drive to load point", ...) with the remaining drive time, or Courseplay with the waypoint and the remaining time of the course. Tested in the game, both the AutoDrive and the Courseplay line.

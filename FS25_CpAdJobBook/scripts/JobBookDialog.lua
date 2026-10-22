@@ -14,6 +14,7 @@ JobBookDialog.MAX_NAME_LENGTH = 40
 JobBookDialog.CONTROLS = {
     "titleText",
     "statusText",
+    "activityText",
     "jobList",
     "emptyText",
     "btnRemove",
@@ -83,12 +84,32 @@ function JobBookDialog:update(dt)
     end
     self.refreshTimer = 0
 
+    self:updateActivity()
+
     if self.vehicle == nil or self:getQueueSignature() == self.signature then
         return
     end
 
     local row = self:getSelectedRow()
     self:refresh(nil, row ~= nil and row.job or nil)
+end
+
+---Shows what the vehicle does right now (AutoDrive task or Courseplay course, with the remaining
+-- time). The line is empty while neither of them is active.
+function JobBookDialog:updateActivity()
+    local text = nil
+    if self.vehicle ~= nil then
+        local ok, result = pcall(JobQueue.getActivityText, self.vehicle)
+        if ok then
+            text = result
+        elseif not self.activityErrorLogged then
+            -- other mods are read here, so don't let a change in them break the window or flood the log
+            self.activityErrorLogged = true
+            JobQueue.warn("Error in getActivityText: %s", tostring(result))
+        end
+    end
+
+    self.activityText:setText(text or "")
 end
 
 ---The row selected in the list, or nil.
@@ -242,6 +263,8 @@ function JobBookDialog:refresh(selectIndex, selectJob)
     else
         self.statusText:setText(string.format("%s - %s", name, state))
     end
+
+    self:updateActivity()
 
     self.emptyText:setVisible(#self.rows == 0)
     self.jobList:reloadData()
