@@ -1,7 +1,7 @@
 # Packs FS25_CpAdJobBook/ into a zip (modDesc.xml at the zip root) and copies it
 # into the game's mods folder. Close the game first, it locks the zip while running.
 param(
-    [string]$ModsDir = 'D:\GameData\FarmingSimulator2025\mods'
+    [string]$ModsDir = 'E:\GameData\FarmingSimulator2025\mods'
 )
 
 $ErrorActionPreference = 'Stop'
