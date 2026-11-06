@@ -9,6 +9,9 @@
         <ThreePartBitmap profile="fs25_dialogBgBottom"/>
 
         <GuiElement profile="fs25_dialogContentContainer">
+            <!-- not in the button bar: a seventh button doesn't fit there -->
+            <Button profile="jbBtnTemplates" text="$l10n_jobBook_templates" onClick="onClickTemplates"/>
+
             <BoxLayout profile="jbMainBox">
 
                 <Text profile="jbTitle" text="$l10n_jobBook_title" id="titleText"/>
@@ -68,6 +71,11 @@
 
         <Profile name="jbBtnAdd" extends="buttonOK">
             <inputAction value="MENU_EXTRA_2"/>
+        </Profile>
+
+        <Profile name="jbBtnTemplates" extends="buttonOK" with="anchorTopRight">
+            <inputAction value="MENU_ACTIVATE"/>
+            <position value="0px 0px"/>
         </Profile>
 
         <Profile name="jbBtnUp" extends="buttonOK">

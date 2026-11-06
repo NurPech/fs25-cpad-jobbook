@@ -28,5 +28,21 @@
     <text name="jobBook_activityCp" text="Courseplay is working"/>
     <text name="jobBook_activityAd" text="AutoDrive is driving"/>
     <text name="jobBook_remaining" text="%s left"/>
+    <text name="jobBook_templates" text="Templates"/>
+    <text name="templates_title" text="Templates"/>
+    <text name="templates_hint" text="Saved job lists of this savegame"/>
+    <text name="templates_colName" text="Name"/>
+    <text name="templates_colCount" text="Jobs"/>
+    <text name="templates_colContent" text="Destinations"/>
+    <text name="templates_empty" text="No templates saved yet"/>
+    <text name="templates_save" text="Save"/>
+    <text name="templates_add" text="Append"/>
+    <text name="templates_delete" text="Delete"/>
+    <text name="templates_savePrompt" text="Template name"/>
+    <text name="templates_needName" text="Please enter a name"/>
+    <text name="templates_nothingToSave" text="This vehicle has no jobs to save"/>
+    <text name="templates_saved" text="Template '%s' saved (%d jobs)"/>
+    <text name="templates_replaced" text="Template '%s' replaced (%d jobs)"/>
+    <text name="templates_deleted" text="Template '%s' deleted"/>
   </texts>
 </l10n>

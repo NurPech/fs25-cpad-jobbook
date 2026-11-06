@@ -28,5 +28,21 @@
     <text name="jobBook_activityCp" text="Courseplay arbeitet"/>
     <text name="jobBook_activityAd" text="AutoDrive fährt"/>
     <text name="jobBook_remaining" text="noch %s"/>
+    <text name="jobBook_templates" text="Vorlagen"/>
+    <text name="templates_title" text="Vorlagen"/>
+    <text name="templates_hint" text="Gespeicherte Auftragslisten dieses Spielstands"/>
+    <text name="templates_colName" text="Name"/>
+    <text name="templates_colCount" text="Aufträge"/>
+    <text name="templates_colContent" text="Ziele"/>
+    <text name="templates_empty" text="Noch keine Vorlagen gespeichert"/>
+    <text name="templates_save" text="Speichern"/>
+    <text name="templates_add" text="Anhängen"/>
+    <text name="templates_delete" text="Löschen"/>
+    <text name="templates_savePrompt" text="Name der Vorlage"/>
+    <text name="templates_needName" text="Bitte einen Namen eingeben"/>
+    <text name="templates_nothingToSave" text="Dieses Fahrzeug hat keine Aufträge zum Speichern"/>
+    <text name="templates_saved" text="Vorlage '%s' gespeichert (%d Aufträge)"/>
+    <text name="templates_replaced" text="Vorlage '%s' ersetzt (%d Aufträge)"/>
+    <text name="templates_deleted" text="Vorlage '%s' gelöscht"/>
   </texts>
 </l10n>

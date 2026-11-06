@@ -126,7 +126,12 @@ function JobBookDialog:onClickAdd()
     AddJobDialog.show(self.vehicle, self.onAddJobClosed, self)
 end
 
----Called when the AddJobDialog is closed: show the new jobs with the last one selected.
+function JobBookDialog:onClickTemplates()
+    TemplateDialog.show(self.vehicle, self.onAddJobClosed, self)
+end
+
+---Called when the AddJobDialog or the TemplateDialog is closed: show the new jobs with the last one
+-- selected.
 function JobBookDialog:onAddJobClosed()
     local queue = self:getQueue()
     if queue == nil then

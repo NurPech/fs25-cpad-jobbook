@@ -14,14 +14,16 @@
 -- Finishing: AutoDrive.onCpFinished is wrapped. Open job -> start it (deferred by a short time so
 -- CP can finish cleanly). No open job -> AD parks as usual.
 --
--- The queues are saved with the savegame (<savegame>/cpAdJobBook.xml). Operated with console commands
--- and the window of JobBookDialog (opened with a key).
+-- The queues and the templates (saved job lists that can be appended to any vehicle) are saved with
+-- the savegame (<savegame>/cpAdJobBook.xml). Operated with console commands and the window of
+-- JobBookDialog (opened with a key).
 
 JobQueue = {}
 JobQueue.modName = g_currentModName
 JobQueue.modDirectory = g_currentModDirectory
 JobQueue.OPEN_ACTION = "CPADJOBBOOK_OPEN"
 JobQueue.queues = {}        -- [vehicle unique id] = { jobs = {...}, running = bool, current = job }
+JobQueue.templates = {}     -- saved job lists, { name = text, jobs = {...} }, same job tables as the queues
 JobQueue.pending = {}       -- deferred job starts
 JobQueue.pendingClear = {}  -- deferred removal of the Courseplay course after a finished queue
 JobQueue.START_DELAY = 500
@@ -745,6 +747,68 @@ function JobQueue:addJob(vehicle, course, destination)
     return #queue.jobs
 end
 
+---------------------------------------------------------------------------------------------------
+-- Templates
+---------------------------------------------------------------------------------------------------
+
+---A copy of a job. startJob changes markerId and markerName of the job it runs, so a template and
+-- the queues must never share job tables.
+local function copyJob(job)
+    return {
+        course = { path = job.course.path, name = job.course.name, relative = job.course.relative },
+        markerId = job.markerId,
+        markerName = job.markerName,
+    }
+end
+
+---Stores the jobs of the vehicle (the running one first, then the open ones) as a template. A
+-- template with the same name is replaced. Returns the number of jobs, the index of the template
+-- and whether it replaced one, or nil and a reason ("name" or "empty").
+function JobQueue:saveTemplate(vehicle, name)
+    name = string.gsub(name or "", "^%s*(.-)%s*$", "%1")
+    if name == "" then
+        return nil, "name"
+    end
+
+    local jobs = {}
+    local queue = self:getQueue(vehicle, false)
+    if queue ~= nil then
+        if queue.current ~= nil then
+            table.insert(jobs, copyJob(queue.current))
+        end
+
+        for _, job in ipairs(queue.jobs) do
+            table.insert(jobs, copyJob(job))
+        end
+    end
+
+    if #jobs == 0 then
+        return nil, "empty"
+    end
+
+    for i, template in ipairs(self.templates) do
+        if template.name == name then
+            self.templates[i] = { name = name, jobs = jobs }
+            return #jobs, i, true
+        end
+    end
+
+    table.insert(self.templates, { name = name, jobs = jobs })
+
+    return #jobs, #self.templates, false
+end
+
+---Appends copies of the jobs of the template to the queue of the vehicle. Returns the number of
+-- jobs.
+function JobQueue:addTemplate(vehicle, template)
+    local queue = self:getQueue(vehicle, true)
+    for _, job in ipairs(template.jobs) do
+        table.insert(queue.jobs, copyJob(job))
+    end
+
+    return #template.jobs
+end
+
 function JobQueue:consoleAdd(...)
     local usage = "usage: jqAdd <course words> | <destination words>, e.g. jqAdd kalken F02 12m | Feld 02"
 
@@ -964,6 +1028,15 @@ function JobQueue.saveToXMLFile()
         return
     end
 
+    for i, template in ipairs(JobQueue.templates) do
+        local key = string.format("jobBook.template(%d)", i - 1)
+        xmlFile:setString(key .. "#name", template.name)
+
+        for j, job in ipairs(template.jobs) do
+            saveJob(xmlFile, string.format("%s.job(%d)", key, j - 1), job)
+        end
+    end
+
     local count = 0
     for vehicleKey, queue in pairs(JobQueue.queues) do
         if #queue.jobs > 0 or queue.running or queue.name ~= nil then
@@ -1035,9 +1108,26 @@ function JobQueue.loadFromXMLFile()
         end
     end
 
+    for _, key in xmlFile:iterator("jobBook.template") do
+        local name = xmlFile:getString(key .. "#name")
+
+        if name ~= nil and name ~= "" then
+            local template = { name = name, jobs = {} }
+
+            for _, jobKey in xmlFile:iterator(key .. ".job") do
+                local job = loadJob(xmlFile, jobKey)
+                if job ~= nil then
+                    table.insert(template.jobs, job)
+                end
+            end
+
+            table.insert(JobQueue.templates, template)
+        end
+    end
+
     xmlFile:delete()
 
-    JobQueue.log("loaded the queues of %d vehicle(s)", count)
+    JobQueue.log("loaded the queues of %d vehicle(s) and %d template(s)", count, #JobQueue.templates)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -1109,6 +1199,7 @@ function JobQueue:loadMap()
 
     JobQueue.protected("registerDialog", JobBookDialog.register)
     JobQueue.protected("registerAddJobDialog", AddJobDialog.register)
+    JobQueue.protected("registerTemplateDialog", TemplateDialog.register)
 
     addConsoleCommand("jqCourses", "Lists Courseplay courses (folders without filter): jqCourses <words>", "consoleCourses", JobQueue)
     addConsoleCommand("jqDest", "Lists AutoDrive destinations: jqDest <words>", "consoleDestinations", JobQueue)
@@ -1134,6 +1225,7 @@ end)
 -- start fresh with the next mission
 BaseMission.delete = Utils.prependedFunction(BaseMission.delete, function()
     JobQueue.queues = {}
+    JobQueue.templates = {}
     JobQueue.pending = {}
     JobQueue.pendingClear = {}
 end)

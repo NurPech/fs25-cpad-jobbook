@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<GUI onOpen="onOpen" onClose="onClose">
+    <GuiElement profile="newLayer"/>
+    <Bitmap profile="dialogFullscreenBg" id="dialogBg"/>
+
+    <GuiElement profile="fs25_dialogBg" id="dialogElement" size="1060px 600px">
+        <ThreePartBitmap profile="fs25_dialogBgMiddle"/>
+        <ThreePartBitmap profile="fs25_dialogBgTop"/>
+        <ThreePartBitmap profile="fs25_dialogBgBottom"/>
+
+        <GuiElement profile="fs25_dialogContentContainer">
+            <BoxLayout profile="tpMainBox">
+
+                <Text profile="tpTitle" text="$l10n_templates_title"/>
+
+                <GuiElement profile="tpSepWrapper">
+                    <ThreePartBitmap profile="tpSep"/>
+                </GuiElement>
+
+                <GuiElement profile="tpSpacer"/>
+
+                <Text profile="tpStatus" id="statusText"/>
+
+                <GuiElement profile="tpContent">
+                    <Text profile="tpColHeader" position="0px 0px" size="280px 25px" text="$l10n_templates_colName"/>
+                    <Text profile="tpColHeader" position="280px 0px" size="80px 25px" text="$l10n_templates_colCount"/>
+                    <Text profile="tpColHeader" position="360px 0px" size="560px 25px" text="$l10n_templates_colContent"/>
+
+                    <SmoothList profile="tpList" id="templateList" focusInit="onOpen" selectedWithoutFocus="true" listItemSpacing="0px" listItemLateralSpacing="0px" listSmoothingDisabled="true">
+                        <ListItem profile="tpListItem" name="templateItem">
+                            <ThreePartBitmap profile="tpItemGradient" name="alternating"/>
+                            <Text profile="tpCellLeft" position="10px 0px" size="260px 32px" name="cellName"/>
+                            <Text profile="tpCell" position="280px 0px" size="80px 32px" name="cellCount"/>
+                            <Text profile="tpCellLeft" position="360px 0px" size="550px 32px" name="cellContent"/>
+                        </ListItem>
+                    </SmoothList>
+                    <ThreePartBitmap profile="tpSliderBox">
+                        <Slider profile="fs25_listSlider" dataElementId="templateList"/>
+                    </ThreePartBitmap>
+
+                    <Text profile="tpEmpty" text="$l10n_templates_empty" id="emptyText"/>
+                </GuiElement>
+
+            </BoxLayout>
+        </GuiElement>
+
+        <BoxLayout profile="fs25_dialogButtonBox" size="1000px 60px">
+            <Button profile="tpBtnSave" text="$l10n_templates_save" onClick="onClickSave"/>
+            <Bitmap profile="fs25_dialogButtonBoxSeparator"/>
+            <Button profile="tpBtnDelete" id="btnDelete" text="$l10n_templates_delete" onClick="onClickDelete"/>
+            <Bitmap profile="fs25_dialogButtonBoxSeparator"/>
+            <Button profile="buttonOK" id="btnAdd" text="$l10n_templates_add" onClick="onClickAdd"/>
+            <Bitmap profile="fs25_dialogButtonBoxSeparator"/>
+            <Button profile="buttonBack" text="$l10n_jobBook_close" onClick="onClickBack"/>
+        </BoxLayout>
+    </GuiElement>
+
+    <GUIProfiles>
+
+        <Profile name="tpBtnSave" extends="buttonOK">
+            <inputAction value="MENU_EXTRA_2"/>
+        </Profile>
+
+        <Profile name="tpBtnDelete" extends="buttonOK">
+            <inputAction value="MENU_EXTRA_1"/>
+        </Profile>
+
+        <Profile name="tpMainBox" extends="emptyPanel" with="anchorTopCenter">
+            <size value="920px 480px"/>
+            <flowDirection value="vertical"/>
+            <alignmentX value="left"/>
+            <alignmentY value="top"/>
+            <elementSpacing value="0px"/>
+        </Profile>
+
+        <Profile name="tpTitle" extends="baseReference">
+            <size value="920px 40px"/>
+            <margin value="0px 4px 0px 0px"/>
+            <textSize value="20px"/>
+            <textBold value="true"/>
+            <textUpperCase value="true"/>
+            <textColor value="$preset_fs25_colorMainLight"/>
+            <textAlignment value="center"/>
+            <textVerticalAlignment value="middle"/>
+        </Profile>
+
+        <Profile name="tpSepWrapper" extends="emptyPanel">
+            <size value="920px 2dp"/>
+        </Profile>
+
+        <Profile name="tpSep" extends="fs25_lineSeparatorTopHighlighted" with="anchorTopCenter">
+            <size value="260px 2dp"/>
+        </Profile>
+
+        <Profile name="tpSpacer" extends="emptyPanel">
+            <size value="920px 15px"/>
+        </Profile>
+
+        <Profile name="tpStatus" extends="baseReference">
+            <size value="920px 30px"/>
+            <textSize value="15px"/>
+            <textColor value="$preset_colorWhite_50"/>
+            <textAlignment value="center"/>
+            <textVerticalAlignment value="middle"/>
+        </Profile>
+
+        <Profile name="tpContent" extends="emptyPanel">
+            <size value="920px 390px"/>
+        </Profile>
+
+        <Profile name="tpColHeader" extends="baseReference" with="anchorTopLeft">
+            <textSize value="13px"/>
+            <textBold value="true"/>
+            <textUpperCase value="true"/>
+            <textColor value="$preset_colorWhite_50"/>
+            <textAlignment value="center"/>
+            <textVerticalAlignment value="middle"/>
+        </Profile>
+
+        <Profile name="tpList" extends="emptyPanel" with="anchorTopLeft">
+            <position value="0px -30px"/>
+            <size value="920px 360px"/>
+        </Profile>
+
+        <Profile name="tpSliderBox" extends="fs25_listSliderBox" with="anchorTopLeft">
+            <position value="914px -30px"/>
+            <size value="6px 360px"/>
+        </Profile>
+
+        <Profile name="tpListItem" extends="fs25_calendarListItem">
+            <height value="32px"/>
+            <imageColor value="$preset_fs25_colorGrey"/>
+            <imageSelectedColor value="$preset_fs25_colorMainHighlight"/>
+            <alternateBackgroundColor value="$preset_fs25_colorGreyDark_50"/>
+        </Profile>
+
+        <Profile name="tpItemGradient" extends="fs25_calendarListItemBg">
+            <imageSelectedColor value="$preset_fs25_colorMainHighlight"/>
+            <startImageSelectedColor value="$preset_fs25_colorMainHighlight"/>
+            <endImageSelectedColor value="$preset_fs25_colorMainHighlight"/>
+        </Profile>
+
+        <Profile name="tpCell" extends="baseReference">
+            <textSize value="14px"/>
+            <textBold value="true"/>
+            <textColor value="$preset_fs25_colorMainLight"/>
+            <textSelectedColor value="$preset_fs25_colorMainDark"/>
+            <textAlignment value="center"/>
+            <textVerticalAlignment value="middle"/>
+        </Profile>
+
+        <Profile name="tpCellLeft" extends="tpCell">
+            <textBold value="false"/>
+            <textAlignment value="left"/>
+        </Profile>
+
+        <Profile name="tpEmpty" extends="baseReference" with="anchorTopLeft">
+            <position value="0px -140px"/>
+            <size value="920px 40px"/>
+            <textSize value="16px"/>
+            <textColor value="$preset_colorWhite_50"/>
+            <textAlignment value="center"/>
+            <textVerticalAlignment value="middle"/>
+        </Profile>
+
+    </GUIProfiles>
+</GUI>
