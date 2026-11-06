@@ -8,7 +8,7 @@ A job is a Courseplay course plus an AutoDrive destination (the field). When Cou
 
 - Farming Simulator 25, singleplayer.
 - The mods Courseplay and AutoDrive. This mod depends on both, the game won't enable it without them.
-- Put `FS25_CpAdJobBook.zip` into the mods folder of the game (see *Build* below for how to create the zip from this repository; `modDesc.xml` has to be at the top level of the zip).
+- Download `FS25_CpAdJobBook.zip` from the [Releases](https://github.com/NurPech/fs25-cpad-jobbook/releases) page and put it, without unpacking it, into the mods folder of the game. To build the zip yourself see *Build* below (`modDesc.xml` has to be at the top level of the zip).
 
 ## How it works
 
