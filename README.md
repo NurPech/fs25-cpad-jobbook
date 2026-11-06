@@ -71,7 +71,7 @@ Version 0.5.0.0 adds names for the queues (window, `jqName`, savegame, field `qu
 
 Version 0.6.0.0 shows what the vehicle does right now in the job book window: the AutoDrive task ("Drive to load point", ...) with the remaining drive time, or Courseplay with the waypoint and the remaining time of the course. Tested in the game, both the AutoDrive and the Courseplay line.
 
-Version 0.7.0.0 adds templates: the "Templates" button (top right of the job book) opens a list of saved job lists of the savegame. "Save" stores the jobs of the vehicle (the running one and the open ones) under a name, "Append" adds the jobs of a template to the queue of the vehicle you sit in, so a list can be copied from one vehicle to another or reused later (same fields to lime or mow again). The templates are saved with the savegame in `cpAdJobBook.xml`. Not tested in the game yet.
+Version 0.7.0.0 adds templates: the "Templates" button (top right of the job book) opens a list of saved job lists of the savegame. "Save" stores the jobs of the vehicle (the running one and the open ones) under a name, "Append" adds the jobs of a template to the queue of the vehicle you sit in, so a list can be copied from one vehicle to another or reused later (same fields to lime or mow again). The templates are saved with the savegame in `cpAdJobBook.xml`. Tested in the game.
 
 ## License
 
