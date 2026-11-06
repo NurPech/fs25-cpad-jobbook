@@ -1,7 +1,10 @@
 # Packs FS25_CpAdJobBook/ into a zip (modDesc.xml at the zip root) and copies it
 # into the game's mods folder. Close the game first, it locks the zip while running.
+# Mods folder: -ModsDir, else the environment variable FS25_MODS_DIR, else the default
+# <Documents>\My Games\FarmingSimulator2025\mods.
 param(
-    [string]$ModsDir = 'E:\GameData\FarmingSimulator2025\mods'
+    [string]$ModsDir = $(if ($env:FS25_MODS_DIR) { $env:FS25_MODS_DIR } else {
+        Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'My Games\FarmingSimulator2025\mods' })
 )
 
 $ErrorActionPreference = 'Stop'

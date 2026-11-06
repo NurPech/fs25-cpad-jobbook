@@ -53,7 +53,7 @@ To try it without finishing a course, sit in a vehicle and enter `jqTestEvent` (
 
 ## Build
 
-`build.ps1` packs `FS25_CpAdJobBook/` into `FS25_CpAdJobBook.zip` in the mods folder (default `E:\GameData\FarmingSimulator2025\mods`). Close the game first, it locks the zip while running.
+`build.ps1` packs `FS25_CpAdJobBook/` into `FS25_CpAdJobBook.zip` in the mods folder of the game (`-ModsDir <path>`, else the environment variable `FS25_MODS_DIR`, else `Documents\My Games\FarmingSimulator2025\mods`). Close the game first, it locks the zip while running.
 
 ## Status
 
