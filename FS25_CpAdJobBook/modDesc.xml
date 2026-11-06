@@ -10,6 +10,10 @@
     <en><![CDATA[A job queue per vehicle for Courseplay and AutoDrive: when a Courseplay course is finished, AutoDrive drives to the next field and Courseplay works the next course. Private singleplayer mod.]]></en>
     <de><![CDATA[Ein Auftragsbuch pro Fahrzeug für Courseplay und AutoDrive: Ist ein Courseplay-Kurs fertig, fährt AutoDrive zum nächsten Feld und Courseplay arbeitet den nächsten Kurs ab. Privater Singleplayer-Mod.]]></de>
   </description>
+  <dependencies>
+    <dependency>FS25_AutoDrive</dependency>
+    <dependency>FS25_Courseplay</dependency>
+  </dependencies>
   <multiplayer supported="false"/>
   <l10n filenamePrefix="translations/l10n"/>
   <extraSourceFiles>
