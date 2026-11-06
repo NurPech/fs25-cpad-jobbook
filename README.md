@@ -1,8 +1,14 @@
 # FS25 CP/AD Job Book
 
-A job queue per vehicle for [Courseplay](https://github.com/Courseplay/Courseplay_FS25) and [AutoDrive](https://github.com/Stephan-S/FS25_AutoDrive). Private, singleplayer only. Tested against AutoDrive 3.0.1.4.
+A job queue per vehicle for [Courseplay](https://github.com/Courseplay/Courseplay_FS25) and [AutoDrive](https://github.com/Stephan-S/FS25_AutoDrive). Singleplayer only. Tested with game version 1.24.0.0 and AutoDrive 3.0.1.4. Unofficial: not affiliated with GIANTS Software, Courseplay or AutoDrive.
 
 A job is a Courseplay course plus an AutoDrive destination (the field). When Courseplay finishes a course and more jobs are open, AutoDrive drives to the next field and Courseplay works the next course. When no job is open, AutoDrive parks the vehicle as usual.
+
+## Requirements and installation
+
+- Farming Simulator 25, singleplayer.
+- The mods Courseplay and AutoDrive. This mod depends on both, the game won't enable it without them.
+- Put `FS25_CpAdJobBook.zip` into the mods folder of the game (see *Build* below for how to create the zip from this repository; `modDesc.xml` has to be at the top level of the zip).
 
 ## How it works
 
@@ -66,3 +72,7 @@ Version 0.5.0.0 adds names for the queues (window, `jqName`, savegame, field `qu
 Version 0.6.0.0 shows what the vehicle does right now in the job book window: the AutoDrive task ("Drive to load point", ...) with the remaining drive time, or Courseplay with the waypoint and the remaining time of the course. Tested in the game, both the AutoDrive and the Courseplay line.
 
 Version 0.7.0.0 adds templates: the "Templates" button (top right of the job book) opens a list of saved job lists of the savegame. "Save" stores the jobs of the vehicle (the running one and the open ones) under a name, "Append" adds the jobs of a template to the queue of the vehicle you sit in, so a list can be copied from one vehicle to another or reused later (same fields to lime or mow again). The templates are saved with the savegame in `cpAdJobBook.xml`. Not tested in the game yet.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
