@@ -1,0 +1,42 @@
+name: Release
+
+# Runs when a version tag like 0.7.0.0 is pushed: checks the tag against modDesc.xml,
+# packs FS25_CpAdJobBook/ into a zip (modDesc.xml at the zip root) and publishes a release.
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check that the tag matches the version in modDesc.xml
+        run: |
+          version=$(sed -n 's:.*<version>\(.*\)</version>.*:\1:p' FS25_CpAdJobBook/modDesc.xml | head -n 1)
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match the version $version in modDesc.xml" >&2
+            exit 1
+          fi
+
+      - name: Build the zip
+        run: |
+          cd FS25_CpAdJobBook
+          zip -r -X ../FS25_CpAdJobBook.zip .
+          cd ..
+          unzip -l FS25_CpAdJobBook.zip
+          unzip -l FS25_CpAdJobBook.zip | grep -q ' modDesc.xml$'
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" FS25_CpAdJobBook.zip \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            --verify-tag
